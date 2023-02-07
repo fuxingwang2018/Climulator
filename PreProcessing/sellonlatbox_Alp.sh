@@ -12,7 +12,8 @@ if [[ "$EXP" == "FPS12" ]]; then
     #experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
 
     # for ta500..950, hus500..950, ua500..950, va500..950, phi500..950
-    indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise'
+    indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
+    #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
     experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
     experiment_cmorized='12km'
     FIRST_YEAR=2000
@@ -21,11 +22,12 @@ if [[ "$EXP" == "FPS12" ]]; then
     #lonmax='17'
     #latmin='42.75'
     #latmax='48.5'
-    freq_in='3hr' #3hr, 6hr
-    freq_out='6hr'
+    freq_in='fx' #3hr, 6hr, fx
+    freq_out='fx' #fx
+    VAR_LIST=('orog' ) # orog
     #VAR_LIST=('tas' ) # pr, tas
-    VAR_LIST=(\
-    	'hus500' 'hus700' 'hus850' 'hus950' )
+    #VAR_LIST=(\
+    #	'hus500' 'hus700' 'hus850' 'hus950' )
     #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950') # \
     #	'hus500' 'hus700' 'hus850' 'hus950' \
     #	'ua500' 'ua700' 'ua850' 'ua950' \
@@ -71,6 +73,9 @@ elif [[ "$freq_in" == "1hr" ]]; then
         FIRST_DAYHHMM_IN=010030 # pr
         LAST_DAYHHMM_IN=312330  # pr
     fi
+elif [[ "$freq_in" == "orog" ]]; then
+    FIRST_DAYHHMM_IN="" # fx
+    LAST_DAYHHMM_IN=""  # rx
 fi
 
 if [[ "$freq_out" == "3hr" ]]; then
@@ -89,6 +94,9 @@ elif [[ "$freq_out" == "6hr" ]]; then
         FIRST_DAYHHMM_OUT=010000 # 6hr
         LAST_DAYHHMM_OUT=311800  # 6hr
     fi
+elif [[ "$freq_out" == "fx" ]]; then
+    FIRST_DAYHHMM_OUT="" # fx
+    LAST_DAYHHMM_OUT=""  # rx
 fi
 
 
