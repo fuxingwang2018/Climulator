@@ -19,8 +19,8 @@ conda activate hclimai
 
 set -exu 
 
-cd $HOME/Script/HCLIMAI/SRGANs
-python main.py  
+cd $HOME/Script/HCLIMAI/src
+python main.py -c config_main.ini 
 #python srgans_fw.py
 
 current_date_time="`date`";

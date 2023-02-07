@@ -8,10 +8,10 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras import layers, models, optimizers, metrics, losses
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-from Model_Generator import model_generator
-from Model_Discriminator import model_discriminator
-from Losses import generator_loss, discriminator_loss
-from srgan import SRGAN
+from SRGANs.Model_Generator import model_generator
+from SRGANs.Model_Discriminator import model_discriminator
+from SRGANs.Losses import generator_loss, discriminator_loss
+from SRGANs.srgan import SRGAN
 
 
 class TrainModel(object):

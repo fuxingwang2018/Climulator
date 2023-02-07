@@ -12,11 +12,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 
 
-from Model_Generator import model_generator
-from Model_Discriminator import model_discriminator
-from Losses import generator_loss, discriminator_loss
+from SRGANs.Model_Generator import model_generator
+from SRGANs.Model_Discriminator import model_discriminator
+from SRGANs.Losses import generator_loss, discriminator_loss
 
-from srgan import SRGAN
+from SRGANs.srgan import SRGAN
 
 
 data = np.load('pr_data.npz')

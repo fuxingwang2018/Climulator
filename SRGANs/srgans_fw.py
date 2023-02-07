@@ -13,10 +13,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import sys
 
-from Model_Generator import model_generator
-from Model_Discriminator import model_discriminator
-from Losses import generator_loss, discriminator_loss
-from srgan import SRGAN
+from SRGANs.Model_Generator import model_generator
+from SRGANs.Model_Discriminator import model_discriminator
+from SRGANs.Losses import generator_loss, discriminator_loss
+from SRGANs.srgan import SRGAN
 
 # 3km:  tas, pr 
 # 12km: ta500,  ta700,  ta850,  ta950, 
