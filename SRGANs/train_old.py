@@ -1,4 +1,4 @@
-    def training_old(self, batch_size, EPOCHS, dataset_train, dataset_valid):
+def training_old(self, batch_size, EPOCHS, dataset_train, dataset_valid):
 
         model_name = f"model_1"
 
