@@ -62,10 +62,10 @@ lon_sim_2d = nc.variables[lon_name][:,:]
 for var_to_plot in variable_list:
 
 	# average over all steps
-    	var_sim_3d = nc.variables[var_to_plot][:8771,:,:]
+        var_sim_3d = nc.variables[var_to_plot][:8771,:,:]
     	var_sim_2d = np.nanmean(var_sim_3d, axis=0)
     
-	title_def = var_to_plot + '(' + unit + ')' 
+        title_def = var_to_plot + '(' + unit + ')' 
         fig_out =  str(fig_out_path) + exp_name + '_' + var_to_plot + fig_type
 
         map_plot = MapPlot(fig_out, proj_def, res_def, width_def, height_def, lat_0_def, lon_0_def)
