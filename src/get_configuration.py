@@ -49,6 +49,7 @@ def get_settings(config_file):
         'nodes': conf_dict['CLUSTER']['nodes'],
         'cluster kwargs': conf_dict['CLUSTER']['cluster kwargs'],
         'outdir': conf_dict['SETTINGS']['output dir'],
+        'path_main': conf_dict['SETTINGS']['path_main'],
     }
 
     return d

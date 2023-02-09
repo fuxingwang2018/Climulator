@@ -14,17 +14,18 @@ module load HDF5/1.8.12-nsc1-intel-2018.u1-bare
 current_date_time="`date`";
 echo The run starts from $current_date_time
 
-source ~sm_fuxwa/anaconda3/bin/activate
+#source ~sm_fuxwa/anaconda3/bin/activate
+source /nobackup/rossby24/users/sm_fuxwa/conda/miniconda3/bin/activate
 conda activate hclimai
 
 set -exu 
 
-#cd $HOME/Script/HCLIMAI/src
-#python main.py -c config_main.ini 
+cd $HOME/Script/HCLIMAI/src
+python main.py -c config_main.ini 
 #python srgans_fw.py
 
-cd $HOME/Script/HCLIMAI
-python -m pytest
+#cd $HOME/Script/HCLIMAI
+#python -m pytest
 
 current_date_time="`date`";
 echo The run ends at $current_date_time

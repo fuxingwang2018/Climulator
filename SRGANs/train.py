@@ -1,13 +1,10 @@
 import numpy as np
 import os
-
 from scipy.io import loadmat, savemat
-
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras import layers, models, optimizers, metrics, losses
 from tensorflow.keras.callbacks import ModelCheckpoint
-
 from SRGANs.Model_Generator import model_generator
 from SRGANs.Model_Discriminator import model_discriminator
 from SRGANs.Losses import generator_loss, discriminator_loss
@@ -27,8 +24,10 @@ class TrainModel(object):
  
         model_name = f"model_1"
 
-        generator_optimizer = optimizers.Adam(1e-4)
-        discriminator_optimizer = optimizers.Adam(1e-4)
+        #generator_optimizer = optimizers.Adam(1e-4)
+        #discriminator_optimizer = optimizers.Adam(1e-4)
+        generator_optimizer = optimizers.legacy.Adam(1e-4)
+        discriminator_optimizer = optimizers.legacy.Adam(1e-4)
 
         subsampling_lr = 4
         n_res_block = 8
@@ -109,6 +108,7 @@ class TrainModel(object):
         np.savez_compressed(self.wdir + 'preds', hr = y_test, hr_p = pr_pred)
 
         return pr_pred
+
 
     def get_init_epoch(self, checkpoint_path):
 

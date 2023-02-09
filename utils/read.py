@@ -25,7 +25,7 @@ class Read(object):
 
         self.filetype = filetype
 
-    def read_netcdf(self, dir_nc, var_list, resolution, file_filter):
+    def read_netcdf(self, dir_nc, var_list, file_filter):
 
         nc_files_dict = {} 
         nc_files = glob.glob(dir_nc + '*')
