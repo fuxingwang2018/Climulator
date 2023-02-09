@@ -94,7 +94,7 @@ elif np.array(lat_sim).ndim == 2 and np.array(lon_sim).ndim == 2:
 # examine the variables
 for var_to_plot in variable_list:
 
-	# average over all steps
+        # average over all steps
         var_sim_3d = nc.variables[var_to_plot][:,:,:]
         var_sim_2d = var_sim_3d[month - 1,:,:] #np.nanmean(var_sim_3d, axis=0)
     
