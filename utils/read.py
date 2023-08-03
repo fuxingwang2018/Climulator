@@ -25,6 +25,7 @@ class Read(object):
 
         self.filetype = filetype
 
+
     def read_netcdf(self, dir_nc, var_list, file_filter):
 
         nc_files_dict = {} 
@@ -57,3 +58,22 @@ class Read(object):
         return var_dict
 
 
+    def read_ascii(self, file_in):
+        try:
+            with open(file_in, 'r') as inFile:
+                lines = inFile.readlines()
+                x = [line.split()[0] for line in lines]
+                y = [line.split()[1] for line in lines]
+                return x, y
+
+        except IndexError:
+            print("Error - Please specify an input file.")
+            sys.exit(2)
+
+
+#reader = Read('ascii')
+#x, y = reader.read_ascii('/nobackup/rossby26/users/sm_fuxwa/AI/SRGAN_OUT/EPOCH1/checkpoint')
+#print('x',x)
+#print('y',y)
+#print('y0=', y[0].split('_')[0].strip('"'))
+#print('int y0=', int(y[0].split('_')[1].strip('"')))

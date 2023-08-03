@@ -79,7 +79,7 @@ def main():
     pr_pred = trainmodel.prediction(generator, X_test, y_test)
 
     postproc.plot_result(pr_pred, X_test, y_test, path_figure)
-    sys.exit()
+    print('Completed!')
 
 
 if __name__ == "__main__":

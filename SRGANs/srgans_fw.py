@@ -1,3 +1,5 @@
+# Modified from SRGANs/srgans.py
+
 import numpy as np
 import netCDF4
 import glob
