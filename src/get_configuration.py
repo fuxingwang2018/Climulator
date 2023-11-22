@@ -70,7 +70,14 @@ def default_stats_config(stats):
             'EPOCHS': 100, 
             'EPOCH_INIT': 0, 
             'TEST_SIZE': 3000, 
-            'RANDOM_STATE': 24} 
+            'RANDOM_STATE': 24}, 
+        'TRAINING': {
+            'SUBSAMPLING_LR': 4, 
+            'N_RES_BLOCK': 8, 
+            'INPUT_CHANNELS': 1, 
+            'OUTPUT_CHANNELS': 1, 
+            'NX': 104,
+            'NY': 88} 
             }
 
     return {k: stats_dict[k] for k in stats}
@@ -85,6 +92,8 @@ def mod_stats_config(requested_stats):
     :return: A dictionary with modified statistics configurations for input requested_stats
     :rtype: dictionary
     """
+    print('requested_stats', type(requested_stats), requested_stats)
+    print('list keys', list(requested_stats.keys()))
     stats_dd = default_stats_config(list(requested_stats.keys()))
 
     # Update dictionary based on input

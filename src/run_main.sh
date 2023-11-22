@@ -1,5 +1,5 @@
 #!/bin/bash 
-#SBATCH -N 1 
+#SBATCH -N 4 
 #SBATCH -t 6:00:00 
 ####SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 

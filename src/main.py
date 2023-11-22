@@ -22,7 +22,16 @@ def main():
     EPOCH_INIT = cdict['stats_conf']['SRGAN']['EPOCH_INIT']
     TEST_SIZE = cdict['stats_conf']['SRGAN']['TEST_SIZE']
     RANDOM_STATE = cdict['stats_conf']['SRGAN']['RANDOM_STATE']
-    print(BATCH_SIZE, EPOCHS, EPOCH_INIT, TEST_SIZE, RANDOM_STATE)
+    print('SRGAN PARAMETERS:', BATCH_SIZE, EPOCHS, EPOCH_INIT, TEST_SIZE, RANDOM_STATE)
+
+
+    SUBSAMPLING_LR = cdict['stats_conf']['TRAINING']['SUBSAMPLING_LR']
+    N_RES_BLOCK = cdict['stats_conf']['TRAINING']['N_RES_BLOCK']
+    INPUT_CHANNELS = cdict['stats_conf']['TRAINING']['INPUT_CHANNELS']
+    OUTPUT_CHANNELS = cdict['stats_conf']['TRAINING']['OUTPUT_CHANNELS']
+    NX = cdict['stats_conf']['TRAINING']['NX']
+    NY = cdict['stats_conf']['TRAINING']['NY']
+    print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY)
 
     path_main = cdict['path_main']
     wdir = path_main + '/SRGAN_OUT/' + 'EPOCH' + str(EPOCHS) + '/'
@@ -75,7 +84,9 @@ def main():
 
 
     trainmodel = train.TrainModel(wdir)
-    generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, dataset_train, dataset_valid)
+    generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
+        dataset_train, dataset_valid)
     pr_pred = trainmodel.prediction(generator, X_test, y_test)
 
     postproc.plot_result(pr_pred, X_test, y_test, path_figure)

@@ -20,7 +20,9 @@ class TrainModel(object):
         self.wdir = wdir
 
 
-    def training(self, batch_size, EPOCH_INIT, EPOCHS, dataset_train, dataset_valid):
+    def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
+        dataset_train, dataset_valid):
 
         # https://www.tensorflow.org/tutorials/keras/save_and_load 
         # https://towardsdatascience.com/resuming-a-training-process-with-keras-3e93152ee11a
@@ -34,13 +36,13 @@ class TrainModel(object):
         generator_optimizer = optimizers.legacy.Adam(1e-4)
         discriminator_optimizer = optimizers.legacy.Adam(1e-4)
 
-        subsampling_lr = 4
-        n_res_block = 8
-        input_channels = 1
-        output_channels = 1
+        #subsampling_lr = 4
+        #n_res_block = 8
+        #input_channels = 1
+        #output_channels = 1
 
-        nx = 104
-        nz = 88
+        #nx = 104
+        #ny = 88
 
         #checkpoint_filepath = self.wdir + 'checkpoint_NN'
         checkpoint_filepath = self.wdir + 'checkpoint_{epoch:04d}'
@@ -73,7 +75,7 @@ class TrainModel(object):
             print ('initial_epoch', initial_epoch)
        
             # Calculating the correct value of count
-            count = initial_epoch * batch_size
+            count = initial_epoch * BATCH_SIZE
             print ('count', count)
 
             # Update the value of count in callback instance
@@ -86,8 +88,8 @@ class TrainModel(object):
         else:
             initial_epoch = 0
 
-            generator =  model_generator(nx, nz, input_channels, subsampling_lr, n_res_block, batch_size)
-            discriminator = model_discriminator(nx, nz, output_channels, batch_size)
+            generator =  model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
+            discriminator = model_discriminator(NX, NY, OUTPUT_CHANNELS, BATCH_SIZE)
 
             model = SRGAN(generator, discriminator)
             model.compile(generator_optimizer, discriminator_optimizer, generator_loss, discriminator_loss)
@@ -139,9 +141,6 @@ class TrainModel(object):
 
         reader = read.Read('ascii')
         col1, col2 = reader.read_ascii(checkpoint_path)
-        print('col1',col1)
-        print('col2',col2)
-        print('col2 [0]',col2[0].strip())
 
         init_epoch = col2[0].split('_')[1].strip('"')
         print('init_epoch=', init_epoch)
