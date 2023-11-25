@@ -33,6 +33,7 @@ def get_settings(config_file):
         'obs start year': conf_dict['OBS']['start year'],
         'obs end year': conf_dict['OBS']['end year'],
         'obs months': conf_dict['OBS']['months'],
+        'downscale mode': conf_dict['SETTINGS']['downscale mode'],
         'variables': conf_dict['SETTINGS']['variables'],
         'var modification': conf_dict['SETTINGS']['variable modification'],
         #'regions': conf_dict['SETTINGS']['regions'],
@@ -74,11 +75,11 @@ def default_stats_config(stats):
         'TRAINING': {
             'SUBSAMPLING_LR': 4, 
             'N_RES_BLOCK': 8, 
-            'INPUT_CHANNELS': 1, 
-            'OUTPUT_CHANNELS': 1, 
             'NX': 104,
             'NY': 88} 
             }
+        #'INPUT_CHANNELS': 1, 
+        #'OUTPUT_CHANNELS': 1, 
 
     return {k: stats_dict[k] for k in stats}
 

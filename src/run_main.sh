@@ -1,6 +1,6 @@
 #!/bin/bash 
-#SBATCH -N 4 
-#SBATCH -t 6:00:00 
+#SBATCH -N 6 
+#SBATCH -t 12:00:00 
 ####SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
 #SBATCH -J SRGAN 

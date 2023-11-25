@@ -116,33 +116,43 @@ class PreProcess(object):
             var_low_res = var_low_res[:-12, :, :, :] # remove the 1st and last elements
 
         """
-        var_low_res_adjusted_dict = var_low_res_dict
-        var_high_res_adjusted_dict = var_high_res_dict
+        var_low_res_adjusted_dict = var_low_res_dict.copy()
+        var_high_res_adjusted_dict = var_high_res_dict.copy()
 
-        for key, values in var_high_res_adjusted_dict.items():
+        common_var = list(set(var_low_res_adjusted_dict).intersection(var_high_res_adjusted_dict))
+        print('common_var:', common_var)
+        for ivar in common_var:
+            high_res_shape = var_high_res_adjusted_dict[ivar].shape
+
+        for key, values in var_low_res_adjusted_dict.items():
                         
             low_res_shape = var_low_res_adjusted_dict[key].shape
-            high_res_shape = var_high_res_adjusted_dict[key].shape
 
+            print('key', key)
             print('low_res_shape', low_res_shape, type(low_res_shape))
             print('high_res_shape', high_res_shape, type(high_res_shape))
 
             # var_low_res_adjusted_dict[key] and var_high_adjusted_res_dict[key] should be divisible for lon & lat dimension (1 & 2 in python)
-            residue_geo = []
-            for i in range(len(low_res_shape)):
-                residue_geo.append(high_res_shape[i] % low_res_shape[i])
-                if residue_geo[i] != 0:
-                    print('Not divisible:', high_res_shape[i], low_res_shape[i], i, residue_geo[i])
-                    if i == 2 and residue_geo[i] == 2:
-                        var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:, :, 1:-1, :] # remove the 1st and last elements
+            if key in var_high_res_adjusted_dict:
+                residue_geo = []
+                for i in range(len(low_res_shape)):
+                    residue_geo.append(high_res_shape[i] % low_res_shape[i])
+                    if residue_geo[i] != 0:
+                        print('Not divisible:', high_res_shape[i], low_res_shape[i], i, residue_geo[i])
+                        if i == 2 and residue_geo[i] == 2:
+                            var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:, :, 1:-1] # remove the 1st and last elements
 
             # the size of the time (1st) dimension should be divisible by batch_size = 50 
             residue_time_low_res = low_res_shape[0] % batch_size
             residue_time_high_res = high_res_shape[0] % batch_size
             if residue_time_high_res != 0 :
-                var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, :, :, :] # remove the last few elements
+                if key in var_high_res_adjusted_dict:
+                    print('key', key)
+                    var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, ] # remove the last few elements
             if residue_time_low_res != 0:
-                var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, :, :, :] # remove the last few elements
+                var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
+            print('residue_time_high_res', residue_time_high_res)
+            print('residue_time_low_res', residue_time_low_res)
 
         return var_low_res_adjusted_dict, var_high_res_adjusted_dict
 
@@ -161,7 +171,8 @@ class PreProcess(object):
         scaler = MinMaxScaler()
         scaler, var_before_scale = self.scale(scaler, var_before_scale)
         print('shape var_before_scale', var_before_scale.shape)
-        var_scaled = np.expand_dims(var_before_scale, axis=3)
+        #var_scaled = np.expand_dims(var_before_scale, axis=3)
+        var_scaled = np.copy(var_before_scale)
         print('var_scaled', var_scaled.shape)
 
         #scalers_list = []
@@ -199,7 +210,7 @@ class PreProcess(object):
         return var_low_res_gen
 
 
-    def split_data(self, var_lr_gen, var_hr, batch_size, TEST_SIZE, RANDOM_STATE, variable):
+    def split_data(self, var_lr_gen, var_hr, batch_size, TEST_SIZE, RANDOM_STATE, variable, downscale_mode):
 
         """
         Split dataset into subsets 
@@ -212,8 +223,59 @@ class PreProcess(object):
         :rtype: array
         """
 
-        #print('var_lr_gen, var_hr:', var_lr_gen.shape, var_hr.shape)
-        X_train, X_test, y_train, y_test = train_test_split(var_lr_gen[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+        if downscale_mode == 'upscale':
+            #print('var_lr_gen, var_hr:', var_lr_gen.shape, var_hr.shape)
+            X_train, X_test, y_train, y_test = train_test_split(var_lr_gen[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+
+        elif downscale_mode == 'direct':
+            # https://stackoverflow.com/questions/70953355/create-a-tensorflow-dataset-based-on-a-multi-input
+            # https://stackoverflow.com/questions/49829023/train-test-split-with-multiple-features
+            #X_train, y_train, X_test, y_test = (), (), (), ()
+
+            """
+            for key, values in var_lr_gen.items():
+                x_tr, x_te = train_test_split(var_lr_gen[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+                X_train = X_train + (x_tr, )
+                X_test = X_test + (x_te, )
+                print('key lr', key)
+                print('x_tr', type(x_tr), len(x_tr))
+                print('x_te', len(x_te))
+            for key, values in var_hr.items():
+                y_tr, y_te = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+                y_train  = y_train + (y_tr, )
+                y_test  = y_test + (y_te, )
+                print('key hr', key)
+                print('y_tr', type(y_tr), len(y_tr))
+                print('y_te', len(y_te))
+            """
+            x_tr, x_te, y_tr, y_te = [None]*len(var_lr_gen), [None]*len(var_lr_gen), [None]*len(var_hr), [None]*len(var_hr)
+            i = 0
+            for key, values in var_lr_gen.items():
+                x_tr_arr, x_te_arr = train_test_split(var_lr_gen[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+                x_tr[i], x_te[i] = x_tr_arr, x_te_arr
+                print('key lr', key, i, len(var_lr_gen))
+                print('x_tr', type(x_tr[i]), np.shape(x_tr[i]))
+                print('x_te', np.shape(x_te[i]))
+                i += 1
+            X_train = np.stack(x_tr, axis = 3)
+            X_test  = np.stack(x_te, axis = 3)
+            i = 0
+            for key, values in var_hr.items():
+                y_tr_arr, y_te_arr = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+                y_tr[i], y_te[i] = y_tr_arr, y_te_arr
+                print('key hr', key, i, len(var_hr))
+                print('y_tr', type(y_tr[i]), np.shape(y_tr[i]))
+                print('y_te', np.shape(y_te[i]))
+                i += 1
+            y_train = np.stack(y_tr, axis = 3)
+            y_test  = np.stack(y_te, axis = 3)
+
+        #X_train = np.asarray(X_train)
+        #y_train = np.asarray(y_train)
+        #X_test = np.asarray(X_test)
+        #y_test = np.asarray(y_test)
+        print('Training dataset shape:', X_train.shape, y_train.shape)
+        print('Testing dataset shape:', X_test.shape, y_test.shape)
 
         dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
         dataset_valid = tf.data.Dataset.from_tensor_slices((X_test, y_test))
@@ -221,10 +283,12 @@ class PreProcess(object):
         dataset_train = dataset_train.batch(batch_size)
         dataset_valid = dataset_valid.batch(batch_size)
 
-        print('Training dataset shape:', X_train.shape, y_train.shape)
-        print('Testing dataset shape:', X_test.shape, y_test.shape)
+        print('dataset_train type:', type(dataset_train))
+        print('dataset_valid type:', type(dataset_valid))
         print('dataset_train shape:', dataset_train.element_spec)
         print('dataset_valid shape:', dataset_valid.element_spec)
+
+        """
 
         shape = X_train.shape
         X_trainr = X_train.reshape((shape[0], -1))
@@ -243,6 +307,7 @@ class PreProcess(object):
 
         print('Training dataset shape:', X_trainr.shape, y_trainr.shape)
         print('Testing dataset shape:', X_testr.shape, y_testr.shape)
+        """
 
         return dataset_train, dataset_valid, X_train, X_test, y_train, y_test
         #return dataset_train, dataset_valid, X_trainr, X_testr, y_trainr, y_testr

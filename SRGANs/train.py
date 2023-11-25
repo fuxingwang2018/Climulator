@@ -102,7 +102,7 @@ class TrainModel(object):
             epochs = EPOCHS, 
             callbacks = callbacks_list, 
             validation_data = dataset_valid, 
-            verbose = 1, 
+            verbose = 2, 
             initial_epoch = EPOCH_INIT)
 
         print ('history:', hist.history)
@@ -124,10 +124,10 @@ class TrainModel(object):
 
     def prediction(self, generator, X_test, y_test):
 
-        pr_pred = generator.predict(X_test)
-        np.savez_compressed(self.wdir + 'preds', hr = y_test, hr_p = pr_pred)
+        y_pred = generator.predict(X_test)
+        np.savez_compressed(self.wdir + 'preds', hr = y_test, hr_p = y_pred)
 
-        return pr_pred
+        return y_pred
 
 
     def get_init_epoch(self, checkpoint_path):
