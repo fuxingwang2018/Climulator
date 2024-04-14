@@ -2,6 +2,22 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 
+# https://github.com/paulaharder/deep-downscaling-overview
+
+# Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network. https://arxiv.org/abs/1609.04802
+# https://github.com/manishdhakal/SuperResolution/tree/master
+# https://github.com/tensorlayer/SRGAN
+# https://github.com/HasnainRaz/Fast-SRGAN
+# https://github.com/deepak112/Keras-SRGAN
+# https://github.com/carlos-gg/dl4ds/tree/master, 
+# https://github.com/fuxingwang2018/mooc-machine-learning-weather-climate/blob/main/tier_3/post_processing/precipitation_downscaling_gan.ipynb
+# https://github.com/jackshiwl/srganMedium
+
+# Torch:
+# https://github.com/deu30303/ClimateSD/tree/main, Downscaling Earth System Models with Deep Learning
+# https://github.com/lzhengchun/DSGAN/tree/main, Fast and accurate learned multiresolution dynamical downscaling for precipitation
+# https://github.com/evbecker/climate-spatial-downscaling/tree/main, https://openreview.net/pdf?id=0Z-jS-aMQFv
+# https://github.com/jleinonen/downscaling-rnn-gan , Stochastic Super-Resolution for Downscaling Time-Evolving Atmospheric Fields with a Generative Adversarial Network
 
 def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size):
 

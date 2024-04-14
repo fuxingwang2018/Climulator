@@ -1,15 +1,16 @@
 #!/bin/bash 
-#SBATCH -N 6 
+#SBATCH -N 4 
 #SBATCH -t 12:00:00 
-####SBATCH -n 1  ##ntasks 
+###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
 #SBATCH -J SRGAN 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
+#SBATCH -A rossby
+###SBATCH --qos=low
 
-module load netCDF/4.3.2-HDF5-1.8.12-nsc1-intel-2018.u1-bare
-module load HDF5/1.8.12-nsc1-intel-2018.u1-bare
+module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb
 
 current_date_time="`date`";
 echo The run starts from $current_date_time

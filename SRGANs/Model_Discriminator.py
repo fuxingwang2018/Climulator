@@ -1,5 +1,11 @@
 from tensorflow.keras import layers, models
 
+# Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network. https://arxiv.org/abs/1609.04802
+# https://github.com/manishdhakal/SuperResolution/tree/master
+# https://github.com/tensorlayer/SRGAN
+# Torch:
+# https://github.com/deu30303/ClimateSD/tree/main, Downscaling Earth System Models with Deep Learning
+
 def model_discriminator(nx, nz, channels, batch_size):
 
     inputs = layers.Input(shape=(nz, nx, channels), batch_size=batch_size, name='high-res-input')

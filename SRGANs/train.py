@@ -12,6 +12,7 @@ from SRGANs.Model_Discriminator import model_discriminator
 from SRGANs.Losses import generator_loss, discriminator_loss
 from SRGANs.srgan import SRGAN
 from utils import read
+from SRGANs.Network import Generator
 
 class TrainModel(object):
 
@@ -89,6 +90,7 @@ class TrainModel(object):
             initial_epoch = 0
 
             generator =  model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
+            #generator = Generator((int(NY / SUBSAMPLING_LR), int(NX / SUBSAMPLING_LR), INPUT_CHANNELS)).generator()
             discriminator = model_discriminator(NX, NY, OUTPUT_CHANNELS, BATCH_SIZE)
 
             model = SRGAN(generator, discriminator)
@@ -103,7 +105,8 @@ class TrainModel(object):
             callbacks = callbacks_list, 
             validation_data = dataset_valid, 
             verbose = 2, 
-            initial_epoch = EPOCH_INIT)
+            #initial_epoch = EPOCH_INIT,
+            )
 
         print ('history:', hist.history)
         savemat(self.wdir + f'loss_{model_name}.mat', hist.history)
