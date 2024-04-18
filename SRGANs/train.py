@@ -105,7 +105,7 @@ class TrainModel(object):
             callbacks = callbacks_list, 
             validation_data = dataset_valid, 
             verbose = 2, 
-            #initial_epoch = EPOCH_INIT,
+            initial_epoch = EPOCH_INIT,
             )
 
         print ('history:', hist.history)

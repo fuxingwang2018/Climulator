@@ -121,11 +121,21 @@ class PreProcess(object):
 
         common_var = list(set(var_low_res_adjusted_dict).intersection(var_high_res_adjusted_dict))
         print('common_var:', common_var)
-        for ivar in common_var:
-            high_res_shape = var_high_res_adjusted_dict[ivar].shape
+        #for ivar in common_var:
+        for key, values in var_high_res_adjusted_dict.items():
 
+            high_res_shape = var_high_res_adjusted_dict[key].shape
+            residue_time_high_res = high_res_shape[0] % batch_size
+            if residue_time_high_res != 0 :
+                #if key in var_high_res_adjusted_dict:
+                for key_hr, values_hr in var_high_res_adjusted_dict.items():
+                    print('key in var_high_res_adjusted_dict', key_hr)
+                    var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:-residue_time_high_res, ] # remove the last few elements
+            print('residue_time_high_res', residue_time_high_res)
+
+        ikey = 0                       
         for key, values in var_low_res_adjusted_dict.items():
-                        
+
             low_res_shape = var_low_res_adjusted_dict[key].shape
 
             print('key', key)
@@ -133,26 +143,28 @@ class PreProcess(object):
             print('high_res_shape', high_res_shape, type(high_res_shape))
 
             # var_low_res_adjusted_dict[key] and var_high_adjusted_res_dict[key] should be divisible for lon & lat dimension (1 & 2 in python)
-            if key in var_high_res_adjusted_dict:
+            #if key in var_high_res_adjusted_dict:
+            for key_hr, values_hr in var_high_res_adjusted_dict.items():
                 residue_geo = []
                 for i in range(len(low_res_shape)):
                     residue_geo.append(high_res_shape[i] % low_res_shape[i])
                     if residue_geo[i] != 0:
                         print('Not divisible:', high_res_shape[i], low_res_shape[i], i, residue_geo[i])
-                        if i == 2 and residue_geo[i] == 2:
-                            var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:, :, 1:-1] # remove the 1st and last elements
+                        if ikey == 0 and i == 2 and residue_geo[i] == 2:
+                            var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:, :, 1:-1] # remove the 1st and last elements
 
             # the size of the time (1st) dimension should be divisible by batch_size = 50 
             residue_time_low_res = low_res_shape[0] % batch_size
-            residue_time_high_res = high_res_shape[0] % batch_size
-            if residue_time_high_res != 0 :
-                if key in var_high_res_adjusted_dict:
-                    print('key', key)
-                    var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, ] # remove the last few elements
+            #residue_time_high_res = high_res_shape[0] % batch_size
+            #if residue_time_high_res != 0 :
+            #    #if key in var_high_res_adjusted_dict:
+            #    for key_hr, values_hr in var_high_res_adjusted_dict.items():
+            #        print('key in var_high_res_adjusted_dict', key_hr)
+            #        var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:-residue_time_high_res, ] # remove the last few elements
             if residue_time_low_res != 0:
                 var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
-            print('residue_time_high_res', residue_time_high_res)
             print('residue_time_low_res', residue_time_low_res)
+            ikey += 1
 
         return var_low_res_adjusted_dict, var_high_res_adjusted_dict
 
@@ -173,7 +185,7 @@ class PreProcess(object):
         print('shape var_before_scale', var_before_scale.shape)
         #var_scaled = np.expand_dims(var_before_scale, axis=3)
         var_scaled = np.copy(var_before_scale)
-        print('var_scaled', var_scaled.shape)
+        print('var_scaled', var_scaled.shape, np.nanmin(var_scaled), np.nanmax(var_scaled))
 
         #scalers_list = []
         #scalers_list.append(scaler)
@@ -200,8 +212,15 @@ class PreProcess(object):
 
         Pool_Size = 4 
         max_pool_2d = layers.MaxPooling2D(pool_size = Pool_Size, padding = 'valid')
-        var_low_res_gen = max_pool_2d(var_high_res)
+        if var_high_res.ndim == 3:
+            var_high_res_4dim = np.expand_dims(var_high_res, axis=3)
+        var_low_res_gen = max_pool_2d(var_high_res_4dim)
         var_low_res_gen = var_low_res_gen.numpy()
+        print('var_high_res_4dim:', var_high_res_4dim.shape)
+        del var_high_res_4dim
+
+        if var_low_res_gen.ndim == 4 and var_low_res_gen.shape[-1] == 1:
+            var_low_res_gen = var_low_res_gen[:, :, :, 0]
 
         print('var_low_res_gen:', var_low_res_gen.shape)
         print('var_low_res:', var_low_res.shape)
@@ -225,7 +244,14 @@ class PreProcess(object):
 
         if downscale_mode == 'upscale':
             #print('var_lr_gen, var_hr:', var_lr_gen.shape, var_hr.shape)
-            X_train, X_test, y_train, y_test = train_test_split(var_lr_gen[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            
+            if var_lr_gen[variable].ndim == 3:
+                var_lr_4dim = np.expand_dims(var_lr_gen[variable], axis=3)
+            if var_hr[variable].ndim == 3:
+                var_hr_4dim = np.expand_dims(var_hr[variable], axis=3)
+
+            #X_train, X_test, y_train, y_test = train_test_split(var_lr_gen[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            X_train, X_test, y_train, y_test = train_test_split(var_lr_4dim, var_hr_4dim, test_size = TEST_SIZE, random_state = RANDOM_STATE)
 
         elif downscale_mode == 'direct':
             # https://stackoverflow.com/questions/70953355/create-a-tensorflow-dataset-based-on-a-multi-input

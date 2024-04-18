@@ -48,6 +48,7 @@ class Read(object):
             var = list(data.variables.keys())[-1]
             var_dict[ivar] = np.array(data.variables[var])
             var_list_nc.append(var)
+            print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)
 
         #var_nc = np.array(var_dict['pr'])

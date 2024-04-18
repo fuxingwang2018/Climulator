@@ -73,17 +73,25 @@ def main():
     var_low_res_adjusted_dict, var_high_res_adjusted_dict = \
         preproc.adjust_data_size(var_low_res_scaled_dict, var_high_res_scaled_dict, BATCH_SIZE)
 
+    for key, values in var_low_res_adjusted_dict.items():
+        print('shape var_low_res_adjusted_dict:', values.shape)
+    for key, values in var_high_res_adjusted_dict.items():
+        print('shape var_high_res_adjusted_dict:', values.shape)
+
     print('downscale_mode', downscale_mode)
     if downscale_mode == 'upscale':
         # First upscale from 3km to 12km
         var_low_res_filtered_dict = preproc.filter_dict(var_low_res_adjusted_dict, var_high_res_adjusted_dict)
     elif downscale_mode == 'direct':
         var_low_res_filtered_dict = var_low_res_adjusted_dict.copy()
+    for key, values in var_low_res_filtered_dict.items():
+        print('shape var_low_res_filtered:', values.shape)
 
+    sys.exit()
     postproc = postprocess.PostProcess()
-    postproc.plot_input_data(\
-        var_low_res_filtered_dict[varname_predictand_high_res[0]], \
-        var_high_res_scaled_dict[varname_predictand_high_res[0]], path_figure)
+    #postproc.plot_input_data(\
+    #    var_low_res_filtered_dict[varname_predictand_high_res[0]], \
+    #    var_high_res_scaled_dict[varname_predictand_high_res[0]], path_figure)
 
     #preproc.split_data(var_low_res_filtered_dict, var_high_res_scaled_dict, \
     dataset_train, dataset_valid, X_train, X_test, y_train, y_test = \
