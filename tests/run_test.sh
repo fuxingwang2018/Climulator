@@ -1,9 +1,7 @@
 #!/bin/bash 
-#SBATCH -N 1 
+###SBATCH -N 1 
 #SBATCH -t 01:00:00 
-###SBATCH -t 16:00:00 
-###SBATCH -t 40:00:00 
-###SBATCH -n 1  ##ntasks 
+#SBATCH -n 8  ##ntasks 
 ###SBATCH --mem=256000 
 #SBATCH -J SRGAN 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
@@ -24,8 +22,7 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-python main.py -c config_main.ini 
-#python main.py -c config_main_EmiliaRomagna.ini 
+python test_npz.py
 #python srgans_fw.py
 
 #cd $HOME/Script/HCLIMAI

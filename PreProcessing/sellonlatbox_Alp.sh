@@ -7,14 +7,16 @@ LAST_MONTH=12
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
-    # for tas, pr
-    #indir0='/nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/'
-    #experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    # for tas, pr, CAPE  clivi  clt  clwvi  huss  prra  prsn  prw  ps  uas  vas (1hr)
+    # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
+    indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/'
+    experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
 
-    # for ta500..950, hus500..950, ua500..950, va500..950, phi500..950
-    indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
+    # for ta500..950, hus500..950, ua500..950, va500..950 (3hr), phi500..950 (6hr)
+    #indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
     #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
-    experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
+    #experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
+
     experiment_cmorized='12km'
     FIRST_YEAR=2000
     LAST_YEAR=2009 #2014 available but 2009 to consistent with FPS3, 2009 discarded because of spinup
@@ -22,25 +24,25 @@ if [[ "$EXP" == "FPS12" ]]; then
     #lonmax='17'
     #latmin='42.75'
     #latmax='48.5'
-    freq_in='fx' #3hr, 6hr, fx
-    freq_out='fx' #fx
-    VAR_LIST=('orog' ) # orog
-    #VAR_LIST=('tas' ) # pr, tas
-    #VAR_LIST=(\
-    #	'hus500' 'hus700' 'hus850' 'hus950' )
-    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950') # \
+    freq_in='1hr' #1hr, 3hr, 6hr, fx
+    freq_out='6hr' #fx
+    ## VAR_LIST=('orog' ) # orog, does not work, use sellonlatbox_const.sh
+    #VAR_LIST=('pr' ) # pr, tas
+    VAR_LIST=('CAPE' 'clt' 'huss' 'ps' 'uas' 'vas' ) 
+    #VAR_LIST=('hfls'  'hfss'  'mrfso'  'mrso'  'mrsol'	'rlds'  'rlns'  'rsds'  'rsns')
+    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
     #	'hus500' 'hus700' 'hus850' 'hus950' \
     #	'ua500' 'ua700' 'ua850' 'ua950' \
-    #	'va500' 'va700' 'va850' 'va950')
-    #VAR_LIST=('phi500' 'phi700' 'phi850' 'phi950')
+    #	'va500' 'va700' 'va850' 'va950') # 3hr
+    #VAR_LIST=('phi500' 'phi700' 'phi850' 'phi950') # 6hr
 
 elif [[ "$EXP" == "FPS3" ]]; then 
-    indir0='/nobackup/rossby25/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+    indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
     experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1' 
     experiment_cmorized='3km'
     freq_in='1hr'
     freq_out='6hr'
-    VAR_LIST=('tas')  # pr
+    VAR_LIST=('pr')  # tas, pr
     FIRST_YEAR=2000 # 1999 available but we discard it for spinup
     LAST_YEAR=2009
     #lonmin='9'
@@ -52,26 +54,37 @@ fi
 SELMONTH=7
 NAMEMONTH='July'
 
-lonmin='9'
-lonmax='13'
-latmin='45.5'
-latmax='47.7'
+# Smaller test domain
+#lonmin='9'
+#lonmax='13'
+#latmin='45.5'
+#latmax='47.7'
 
-OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'
+#ASPECT3 domain
+lonmin='4.0'
+lonmax='19.0'
+latmin='40.0'
+latmax='49.0'
+
+OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/'
 # DAYHHMM
 if [[ "$freq_in" == "3hr" ]]; then
-    FIRST_DAYHHMM_IN=010000 # 3hr
-    LAST_DAYHHMM_IN=312100  # 3hr
+    # for ta500..950, hus500..950, ua500..950, va500..950 (3hr)
+    #FIRST_DAYHHMM_IN=010000 # 3hr
+    #LAST_DAYHHMM_IN=312100  # 3hr
+    # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
+    FIRST_DAYHHMM_IN=010130 # 3hr
+    LAST_DAYHHMM_IN=312230  # 3hr
 elif [[ "$freq_in" == "6hr" ]]; then
     FIRST_DAYHHMM_IN=010000 # 6hr
     LAST_DAYHHMM_IN=311800  # 6hr
 elif [[ "$freq_in" == "1hr" ]]; then
-    if [[ " ${VAR_LIST[*]} " == *" tas "* ]]; then
-        FIRST_DAYHHMM_IN=010000 # tas
-        LAST_DAYHHMM_IN=312300  # tas
-    elif [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+    if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
         FIRST_DAYHHMM_IN=010030 # pr
         LAST_DAYHHMM_IN=312330  # pr
+    else
+        FIRST_DAYHHMM_IN=010000 # tas
+        LAST_DAYHHMM_IN=312300  # tas
     fi
 elif [[ "$freq_in" == "orog" ]]; then
     FIRST_DAYHHMM_IN="" # fx

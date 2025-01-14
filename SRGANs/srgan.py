@@ -57,7 +57,7 @@ class SRGAN(models.Model):
         self.loss_tracker_1.update_state(gen_loss)
         self.loss_tracker_2.update_state(disc_loss)
         return {"gen_loss": self.loss_tracker_1.result(), "disc_loss": self.loss_tracker_2.result()}
-
+    
     @property
     def metrics(self):
         return [self.loss_tracker_1, self.loss_tracker_2]

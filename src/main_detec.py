@@ -45,9 +45,9 @@ def main():
     frequency_const = cdict['variables']['constant fields']['freq']
     varname_const = cdict['variables']['constant fields']['var names']
 
-    varname_predictor = varname_predictor_low_res #+ varname_const
+    varname_predictor = varname_predictor_low_res + varname_const
 
-    INPUT_CHANNELS = len(varname_predictor) #+ len(varname_const) 
+    INPUT_CHANNELS = len(varname_predictor) 
 
     resolution_high = cdict['variables']['high resolution']['resolution']
     frequency_high_res = cdict['variables']['high resolution']['freq']
@@ -58,10 +58,10 @@ def main():
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY)
     dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
     dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
-    file_filter = 'hr_2000' # 'July'
+    file_filter = '' #'hr_2000' # 'July'
     downscale_mode = cdict['downscale mode']
 
-    dir_const = path_x + '/'  + resolution_const + '/' + frequency_const # + '/orog/' 
+    dir_const = path_x + '/'  + resolution_const + '/' + frequency_const + '/orog/' 
     file_filter_const = 'fx' 
 
     checkdir.checkdir(path_figure)
@@ -80,43 +80,38 @@ def main():
     var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
 
     # constant fields (eg, orography)
-    var_const_high_res_dict = {}
+    nt, nx, ny = np.shape(var_high_res_dict[varname_predictand_high_res[0]])
     if len(varname_const) > 0:
-        #preproc = preprocess.PreProcess()
+        preproc = preprocess.PreProcess()
         var_const_dict = readin.read_netcdf(dir_const, varname_const, file_filter_const)
-        nt, nx, ny = np.shape(var_high_res_dict[varname_predictand_high_res[0]])
         for key, values in var_const_dict.items():
+            #var_high_res_dict[key] = values #np.repeat(values[None, :, :], nt, axis=0)
             var_const_add_time = np.repeat(values[None, :, :], nt, axis=0)
-            var_const_high_res_dict[key] = var_const_add_time
-            print('var_const_high_res', np.shape(var_const_add_time))
-            #var_const_filtered = preproc.filter_var(var_low_res_dict[varname_predictor_low_res[0]], var_const_add_time)
-            ##var_low_res_dict[key] = np.squeeze(var_const_filtered, axis=2)
-            #var_low_res_dict[key] = var_const_filtered[0,:,:]
-            ##var_low_res_dict[key] = np.delete(var_const_filtered, axis = 0)
+            var_const_filtered = preproc.filter_var(var_low_res_dict[varname_predictor_low_res[0]], var_const_add_time)
+            print('var_const_filtered shape', np.shape(var_const_filtered))
+            #var_low_res_dict[key] = np.squeeze(var_const_filtered, axis=2)
+            var_low_res_dict[key] = var_const_filtered[0,:,:]
+            #var_low_res_dict[key] = np.delete(var_const_filtered, axis = 0)
 
     preproc = preprocess.PreProcess()
-
-    var_low_res_adjusted_dict, var_const_high_res_adjusted_dict, var_high_res_adjusted_dict, \
-        residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict = \
-        preproc.adjust_data_size(var_low_res_dict, var_const_high_res_dict, var_high_res_dict, BATCH_SIZE)
-
-    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_adjusted_dict)
-    var_const_high_res_scaled_dict = preproc.scale_const_dict(var_const_high_res_adjusted_dict)
-    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_adjusted_dict)
+    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_dict)
+    for var_const in varname_const:
+        var_low_res_scaled_dict[var_const] = np.repeat(var_low_res_scaled_dict[var_const][None, :, :], nt, axis=0) 
+    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_dict)
+    var_low_res_adjusted_dict, var_high_res_adjusted_dict = \
+        preproc.adjust_data_size(var_low_res_scaled_dict, var_high_res_scaled_dict, BATCH_SIZE)
 
     for key, values in var_low_res_adjusted_dict.items():
         print('shape var_low_res_adjusted_dict:', key, values.shape)
-    for key, values in var_const_high_res_adjusted_dict.items():
-        print('shape var_const_high_res_adjusted_dict:', key, values.shape)
     for key, values in var_high_res_adjusted_dict.items():
         print('shape var_high_res_adjusted_dict:', key, values.shape)
 
     print('downscale_mode', downscale_mode)
     if downscale_mode == 'upscale':
         # First upscale from 3km to 12km
-        var_low_res_filtered_dict = preproc.filter_dict(var_low_res_scaled_dict, var_high_res_scaled_dict)
+        var_low_res_filtered_dict = preproc.filter_dict(var_low_res_adjusted_dict, var_high_res_adjusted_dict)
     elif downscale_mode == 'direct':
-        var_low_res_filtered_dict = var_low_res_scaled_dict.copy()
+        var_low_res_filtered_dict = var_low_res_adjusted_dict.copy()
     for key, values in var_low_res_filtered_dict.items():
         print('shape var_low_res_filtered:', values.shape)
 
@@ -124,87 +119,60 @@ def main():
     postproc.plot_input_data(\
         var_low_res_filtered_dict, \
         var_high_res_scaled_dict, path_figure)
-        #var_low_res_filtered_dict[varname_predictand_high_res[0]], \
-        #var_high_res_scaled_dict[varname_predictand_high_res[0]], path_figure)
 
     #preproc.split_data(var_low_res_filtered_dict, var_high_res_scaled_dict, \
-    dataset_train, dataset_valid, X_train, X_test, const_train, const_test, y_train, y_test = \
-        preproc.split_data(var_low_res_filtered_dict, var_const_high_res_scaled_dict, var_high_res_scaled_dict, \
+    dataset_train, dataset_valid, X_train, X_test, y_train, y_test = \
+        preproc.split_data(var_low_res_filtered_dict, var_high_res_adjusted_dict, \
         BATCH_SIZE, TEST_SIZE, RANDOM_STATE, \
         varname_predictand_high_res[0], downscale_mode)
-    
     #feature_selection.stepwise_algorithm(X_train, X_test, y_train, y_test)
-    print('X_test, const_test, y_test:', np.shape(X_test), np.shape(const_test), np.shape(y_test))
+    print('X_test, y_test:', np.shape(X_test), np.shape(y_test))
     postproc.plot_result(y_test, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
+    #sys.exit()
 
     # training
     trainmodel = train.TrainModel(wdir)
     generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
         dataset_train, dataset_valid)
-    y_pred = trainmodel.prediction(generator, X_test, const_test, y_test)
-    """
-    y_pred = np.copy(y_test)
-    """
+    y_pred = trainmodel.prediction(generator, X_test, y_test)
+
     print('min max of y_test', np.nanmin(y_test), np.nanmax(y_test))
     print('min max of y_pred', np.nanmin(y_pred), np.nanmax(y_pred))
 
     # write results to netcdf
-    print('high res file', glob.glob(dir_high_res + '*')[0])
-    print('varname_predictor_low_res', varname_predictor_low_res)
     print('varname_predictand_high_res', varname_predictand_high_res)
+    print('varname_predictor_low_res', varname_predictor_low_res)
 
-    var_to_write_x, var_to_write_ypred, var_to_write_ytest = {}, {}, {}
-    ivar = 0
-    for ivar_predictor in varname_predictor_low_res:
-        var_to_write_x[ivar_predictor] = X_test[:, :, :, ivar] if X_test.ndim == 4 else X_test[:, :, :]
-        ivar += 1
-    ivar = 0
-    for ivar_predictand in varname_predictand_high_res:
-        var_to_write_ypred[ivar_predictand] = y_pred[:, :, :, ivar] if y_pred.ndim == 4 else y_pred[:, :, :]
-        var_to_write_ytest[ivar_predictand] = y_test[:, :, :, ivar] if y_test.ndim == 4 else y_test[:, :, :]
-        ivar += 1
+    var_to_write_x, var_to_write_y = {}, {}
+    varname_to_write_x_list = []
+    nt_x_test, ny_x_test, nx_x_test, nvar_x_test = np.shape(X_test)
+    for ivar_x_test in range(nvar_x_test):
+        varnam_to_write_x = 'x_test_' + varname_predictor_low_res[ivar_x_test]
+        var_to_write_x[varnam_to_write_x] = X_test[:, :, :, ivar_x_test] 
+        varname_to_write_x_list.append(varnam_to_write_x)
     #var_to_write_x['x_test'] = X_test[:, :, :, 0] if X_test.ndim == 4 else x_test[:, :, :]
-    #var_to_write_y['y_test'] = y_test[:, :, :, 0] if y_test.ndim == 4 else y_test[:, :, :]
-    #var_to_write_y['y_pred'] = y_pred[:, :, :, 0] if y_pred.ndim == 4 else y_pred[:, :, :]
+    var_to_write_y['y_test'] = y_test[:, :, :, 0] if y_test.ndim == 4 else y_test[:, :, :]
+    var_to_write_y['y_pred'] = y_pred[:, :, :, 0] if y_pred.ndim == 4 else y_pred[:, :, :]
 
-
-    var_to_write_x_inverse = preproc.inverse_dict(var_to_write_x, var_low_res_adjusted_dict)
-    var_to_write_ypred_inverse = preproc.inverse_dict(var_to_write_ypred, var_high_res_adjusted_dict)
-    var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict)
-
-    filewriter_ypred = file_writer.FileWriter(wdir + '/' + 'predictant_ypred.nc')
+    filewriter_y = file_writer.FileWriter(wdir + '/' + 'predictant.nc')
     nc_files_to_read_y = glob.glob(dir_high_res + '/' + varname_predictand_high_res[0] + '/' + '*')
     nc_files_to_read_y.sort()
-    #filewriter_y.Write_NC(glob.glob(dir_high_res + varname_predictand_high_res[0] + '*')[0], \
     print('high res file', nc_files_to_read_y[0])
-    filewriter_ypred.Write_NC(nc_files_to_read_y[0], \
+    filewriter_y.Write_NC(nc_files_to_read_y[0], \
                         varname_predictand_high_res[0], \
-                        #['y_pred', 'y_test'], \
-                        varname_predictand_high_res,
-                        residue_time_high_res, TEST_SIZE, residue_geo_dict, var_to_write_ypred_inverse)
-
-
-    filewriter_ytest = file_writer.FileWriter(wdir + '/' + 'predictant_ytest.nc')
-    nc_files_to_read_y = glob.glob(dir_high_res + '/' + varname_predictand_high_res[0] + '/' + '*')
-    nc_files_to_read_y.sort()
-    #filewriter_y.Write_NC(glob.glob(dir_high_res + varname_predictand_high_res[0] + '*')[0], \
-    #print('high res file', nc_files_to_read_y[0])
-    filewriter_ytest.Write_NC(nc_files_to_read_y[0], \
-                        varname_predictand_high_res[0], \
-                        varname_predictand_high_res,
-                        residue_time_high_res, TEST_SIZE, residue_geo_dict, var_to_write_ytest_inverse)
+                        ['y_pred', 'y_test'], \
+                        TEST_SIZE, var_to_write_y)
 
     filewriter_x = file_writer.FileWriter(wdir + '/' + 'predictor.nc')
     nc_files_to_read_x = glob.glob(dir_low_res +  '/' + varname_predictor_low_res[0] + '/' + '*')
-    #filewriter_x.Write_NC(glob.glob(dir_low_res + varname_predictor_low_res[0] + '*')[0], \
     nc_files_to_read_x.sort()
     print('low res file', nc_files_to_read_x[0])
     filewriter_x.Write_NC(nc_files_to_read_x[0], \
                         varname_predictor_low_res[0], \
-                        #['x_test'], \
-                        varname_predictor_low_res, \
-                        residue_time_low_res, TEST_SIZE, {'x':0, 'y':0}, var_to_write_x_inverse)
+                        varname_to_write_x_list, \
+                        TEST_SIZE, var_to_write_x)
+
 
     postproc.plot_result(y_pred, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
     print('Completed!')

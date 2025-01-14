@@ -8,11 +8,14 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras import layers, models, optimizers, metrics, losses
 from tensorflow.keras.callbacks import ModelCheckpoint
 from SRGANs.Model_Generator import model_generator
+#from SRGANs.Model_Generator import model_generator_no_const_input
 from SRGANs.Model_Discriminator import model_discriminator
 from SRGANs.Losses import generator_loss, discriminator_loss
 from SRGANs.srgan import SRGAN
 from utils import read
 from SRGANs.Network import Generator
+import postprocess
+from keras.models import Model
 
 class TrainModel(object):
 
@@ -88,8 +91,10 @@ class TrainModel(object):
 
         else:
             initial_epoch = 0
-
-            generator =  model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
+            #if np.shape(dataset_train.element_spec[0])[0] > 1:
+            generator = model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
+            #else:
+            #    generator = model_generator_no_const_input(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
             #generator = Generator((int(NY / SUBSAMPLING_LR), int(NX / SUBSAMPLING_LR), INPUT_CHANNELS)).generator()
             discriminator = model_discriminator(NX, NY, OUTPUT_CHANNELS, BATCH_SIZE)
 
@@ -108,8 +113,11 @@ class TrainModel(object):
             initial_epoch = EPOCH_INIT,
             )
 
-        print ('history:', hist.history)
+        print ('history:', type(hist.history), hist.history)
         savemat(self.wdir + f'loss_{model_name}.mat', hist.history)
+        path_figure_loss = self.wdir + '/Loss_Function_EPOCHS' + str(EPOCHS) + '.png'
+        postproc = postprocess.PostProcess()
+        postproc.plot_lines(hist.history, path_figure_loss)
 
         # The latest model weights (that are considered the best) are loaded into the model.
         latest = tf.train.latest_checkpoint(os.path.dirname(self.wdir))
@@ -125,9 +133,19 @@ class TrainModel(object):
         return generator
 
 
-    def prediction(self, generator, X_test, y_test):
+    def prediction(self, generator, X_test, const_test, y_test):
 
-        y_pred = generator.predict(X_test)
+        print('X_test, const_test shape:', X_test.shape, const_test.shape)
+        for layer in generator.layers:
+            print(f"{layer.name}: {layer.input_shape} -> {layer.output_shape}")
+            intermediate_model = Model(inputs=generator.input, outputs=layer.output)
+            intermediate_output = intermediate_model.predict([X_test, const_test])
+            print(f"Layer {layer.name} output shape: {intermediate_output.shape}")
+
+        tf.debugging.enable_check_numerics()
+
+        print('End of Debug')
+        y_pred = generator.predict([X_test, const_test])
         np.savez_compressed(self.wdir + 'preds', hr = y_test, hr_p = y_pred)
 
         return y_pred

@@ -29,25 +29,37 @@ class Read(object):
     def read_netcdf(self, dir_nc, var_list, file_filter):
 
         nc_files_dict = {} 
-        nc_files = glob.glob(dir_nc + '*')
-        nc_files.sort()
-        print('All NetCDF files:', len(nc_files), nc_files)
 
         for varname in var_list:
-            for ifile in nc_files:
+            print('varname:', varname)
+            nc_files_all = glob.glob(dir_nc + '/' + str(varname) + '/' + '*')
+            nc_files_all.sort()
+            #print('All NetCDF files:', len(nc_files_all), nc_files_all)
+            nc_files_list = []
+            for ifile in nc_files_all:
                 if varname in ifile and file_filter in ifile:
-                    nc_files_dict[varname] = ifile
+                    nc_files_list.append(ifile)
+            nc_files_dict[varname] = nc_files_list
 
         print('NetCDF files to read:', len(nc_files_dict), nc_files_dict)
 
         var_dict = {}
         var_list_nc = []
+        for ivar, nc_files in nc_files_dict.items():
+            icount = 0
+            print('ivar, nc_files:', ivar, nc_files)
+            for ifile in nc_files:
+                data = netCDF4.Dataset(ifile)
+                #var = list(data.variables.keys())[-1]
+                if icount == 0:
+                    var_data = np.array(data.variables[ivar])
+                else:
+                    var_data_ifile = np.array(data.variables[ivar])
+                    var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
+                icount += 1
 
-        for ivar, ifile in nc_files_dict.items():
-            data = netCDF4.Dataset(ifile)
-            var = list(data.variables.keys())[-1]
-            var_dict[ivar] = np.array(data.variables[var])
-            var_list_nc.append(var)
+            var_dict[ivar] = var_data #np.array(data.variables[var])
+            var_list_nc.append(ivar)
             print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)
 

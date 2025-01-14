@@ -51,6 +51,8 @@ def get_settings(config_file):
         'cluster kwargs': conf_dict['CLUSTER']['cluster kwargs'],
         'outdir': conf_dict['SETTINGS']['output dir'],
         'path_main': conf_dict['SETTINGS']['path_main'],
+        'path_x': conf_dict['SETTINGS']['path_x'],
+        'path_y': conf_dict['SETTINGS']['path_y'],
     }
 
     return d

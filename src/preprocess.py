@@ -35,13 +35,33 @@ class PreProcess(object):
         return scaler, var
 
 
-    def scale_dict(self, var_dict_in):
+    def inverse(self, scaler, var, var_ref_to_fit):
 
         """
-        Scale data to same magnitude
+        Scale data from (0-1) back to real values
 
         :param scaler: 
         :type scaler: 
+        :param var: The variable to scale
+        :type var: array
+        :return: scaled data, var
+        :rtype: array
+        """
+
+        shape = var.shape
+        var = var.reshape((shape[0], -1))
+        scale.fit(var_ref_to_fit)
+        var = scaler.inverse_transform(var)
+        var = var.reshape(shape)
+
+        return scaler, var
+
+
+    def scale_dict(self, var_dict_in):
+
+        """
+        Scale data to same magnitude 
+
         :param var: The variable to scale
         :type var: array
         :return: scaled data, var
@@ -52,6 +72,64 @@ class PreProcess(object):
         for key, values in var_dict_in.items():
             #print(type(values), values.shape)
             var_dict_out[key] = self.scale_var(values)
+            print('scale key:', key)
+
+        return var_dict_out
+
+
+    def inverse_dict(self, var_dict_in, var_ref):
+
+        """
+        Inverse scaled data (0-1) to real data
+
+        :param var: The variable to scale
+        :type var: array
+        :return: scaled data, var
+        :rtype: array
+        """
+
+        var_dict_out = {}
+        for key, values in var_dict_in.items():
+            var_dict_out[key] = self.inverse_var(values, var_ref[key])
+            print('inverse key:', key)
+
+        return var_dict_out
+
+
+    def scale_const_dict(self, var_dict_in):
+
+        """
+        Scale data to same magnitude 
+
+        :param var: The variable to scale
+        :type var: array
+        :return: scaled data, var
+        :rtype: array
+        """
+
+        var_dict_out = {}
+        for key, values in var_dict_in.items():
+            #print(type(values), values.shape)
+            var_dict_out[key] = np.divide(values, np.nanmax(values))
+            print('scale key:', key)
+
+        return var_dict_out
+
+
+    def inverse_const_dict(self, var_dict_in, var_array_ref):
+
+        """
+        Scale data to same magnitude 
+
+        :param var: The variable to scale
+        :type var: array
+        :return: scaled data, var
+        :rtype: array
+        """
+
+        var_dict_out = {}
+        for key, values in var_dict_in.items():
+            var_dict_out[key] = values * np.nanmax(var_array_ref)
             print('scale key:', key)
 
         return var_dict_out
@@ -77,7 +155,7 @@ class PreProcess(object):
         return var_low_res_gen_dict
 
 
-    def adjust_data_size(self, var_low_res_dict, var_high_res_dict, batch_size):
+    def adjust_data_size(self, var_low_res_dict, var_const_high_res_dict, var_high_res_dict, batch_size):
 
         """
         Filter data from high resolution (hr, eg, 3 km) to low resolution (lr, eg, 12 km)
@@ -117,6 +195,7 @@ class PreProcess(object):
 
         """
         var_low_res_adjusted_dict = var_low_res_dict.copy()
+        var_const_high_res_adjusted_dict = var_const_high_res_dict.copy()
         var_high_res_adjusted_dict = var_high_res_dict.copy()
 
         common_var = list(set(var_low_res_adjusted_dict).intersection(var_high_res_adjusted_dict))
@@ -132,6 +211,19 @@ class PreProcess(object):
                     print('key in var_high_res_adjusted_dict', key_hr)
                     var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:-residue_time_high_res, ] # remove the last few elements
             print('residue_time_high_res', residue_time_high_res)
+
+
+        residue_time_const_high_res = 0
+        for key, values in var_const_high_res_adjusted_dict.items():
+
+            high_res_shape = var_const_high_res_adjusted_dict[key].shape
+            residue_time_const_high_res = high_res_shape[0] % batch_size
+            if residue_time_const_high_res != 0 :
+                #if key in var_high_res_adjusted_dict:
+                for key_hr, values_hr in var_const_high_res_adjusted_dict.items():
+                    print('key in var_high_res_adjusted_dict', key_hr)
+                    var_const_high_res_adjusted_dict[key_hr] = var_const_high_res_adjusted_dict[key_hr][:-residue_time_const_high_res, ] # remove the last few elements
+            print('residue_time_const_high_res', residue_time_const_high_res)
 
         ikey = 0                       
         for key, values in var_low_res_adjusted_dict.items():
@@ -153,6 +245,16 @@ class PreProcess(object):
                         if ikey == 0 and i == 2 and residue_geo[i] == 2:
                             var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:, :, 1:-1] # remove the 1st and last elements
 
+            for key_hr, values_hr in var_const_high_res_adjusted_dict.items():
+                residue_geo = []
+                for i in range(len(low_res_shape)):
+                    residue_geo.append(high_res_shape[i] % low_res_shape[i])
+                    if residue_geo[i] != 0:
+                        print('Not divisible:', high_res_shape[i], low_res_shape[i], i, residue_geo[i])
+                        if ikey == 0 and i == 2 and residue_geo[i] == 2:
+                            var_const_high_res_adjusted_dict[key_hr] = var_const_high_res_adjusted_dict[key_hr][:, :, 1:-1] # remove the 1st and last elements
+            residue_geo_dict = {'x':residue_geo[2], 'y':residue_geo[1]}
+
             # the size of the time (1st) dimension should be divisible by batch_size = 50 
             residue_time_low_res = low_res_shape[0] % batch_size
             #residue_time_high_res = high_res_shape[0] % batch_size
@@ -165,11 +267,12 @@ class PreProcess(object):
                 var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
             print('residue_time_low_res', residue_time_low_res)
             ikey += 1
+            
+        return var_low_res_adjusted_dict, var_const_high_res_adjusted_dict, var_high_res_adjusted_dict, \
+            residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict
 
-        return var_low_res_adjusted_dict, var_high_res_adjusted_dict
 
-
-    def scale_var(self, var_before_scale):
+    def scale_var(self, var_origin):
 
         """
         Scale data to same magnitude
@@ -180,11 +283,17 @@ class PreProcess(object):
         :rtype: array
         """
 
+        shape = var_origin.shape
+        var = var_origin.reshape((shape[0], -1))
+
         scaler = MinMaxScaler()
-        scaler, var_before_scale = self.scale(scaler, var_before_scale)
-        print('shape var_before_scale', var_before_scale.shape)
+        var_scaled = scaler.fit_transform(var)
+        var_scaled = var_scaled.reshape(shape)
+
+        #scaler, var_before_scale = self.scale(scaler, var_before_scale)
+        print('var_origin', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
         #var_scaled = np.expand_dims(var_before_scale, axis=3)
-        var_scaled = np.copy(var_before_scale)
+        #var_scaled = np.copy(var_before_scale)
         print('var_scaled', var_scaled.shape, np.nanmin(var_scaled), np.nanmax(var_scaled))
 
         #scalers_list = []
@@ -196,6 +305,35 @@ class PreProcess(object):
 
         return var_scaled
 
+
+    def inverse_var(self, var_origin, var_ref_to_fit):
+
+        """
+        inverse scaled data (0-1) to real data
+
+        :param var_before_inverse: input variable to inverse 
+        :type var_before_inverse: array
+        :return: inversed variable, var_inverse
+        :rtype: array
+        """
+        
+        shape = var_origin.shape
+        var = var_origin.reshape((shape[0], -1))
+        shape_ref = var_ref_to_fit.shape
+        var_ref_reshape = var_ref_to_fit.reshape((shape_ref[0], -1))
+        print('shape, shape_ref', shape, shape_ref)
+
+        scaler = MinMaxScaler()
+        scaler.fit(var_ref_reshape)
+        var_inverse = scaler.inverse_transform(var)
+
+        var_inverse = var_inverse.reshape(shape)
+
+        #scaler, var_inverse = self.inverse(scaler, var_before_inverse)
+        print('var_before_inverse', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
+        print('var_inverse', var_inverse.shape, np.nanmin(var_inverse), np.nanmax(var_inverse))
+
+        return var_inverse
 
     def filter_var(self, var_low_res, var_high_res):
 
@@ -229,7 +367,7 @@ class PreProcess(object):
         return var_low_res_gen
 
 
-    def split_data(self, var_lr_gen, var_hr, batch_size, TEST_SIZE, RANDOM_STATE, variable, downscale_mode):
+    def split_data(self, var_lr, var_const_hr, var_hr, batch_size, TEST_SIZE, RANDOM_STATE, variable, downscale_mode):
 
         """
         Split dataset into subsets 
@@ -243,14 +381,14 @@ class PreProcess(object):
         """
 
         if downscale_mode == 'upscale':
-            #print('var_lr_gen, var_hr:', var_lr_gen.shape, var_hr.shape)
+            #print('var_lr, var_hr:', var_lr.shape, var_hr.shape)
             
-            if var_lr_gen[variable].ndim == 3:
-                var_lr_4dim = np.expand_dims(var_lr_gen[variable], axis=3)
+            if var_lr[variable].ndim == 3:
+                var_lr_4dim = np.expand_dims(var_lr[variable], axis=3)
             if var_hr[variable].ndim == 3:
                 var_hr_4dim = np.expand_dims(var_hr[variable], axis=3)
 
-            #X_train, X_test, y_train, y_test = train_test_split(var_lr_gen[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            #X_train, X_test, y_train, y_test = train_test_split(var_lr[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
             X_train, X_test, y_train, y_test = train_test_split(var_lr_4dim, var_hr_4dim, test_size = TEST_SIZE, random_state = RANDOM_STATE)
 
         elif downscale_mode == 'direct':
@@ -259,8 +397,8 @@ class PreProcess(object):
             #X_train, y_train, X_test, y_test = (), (), (), ()
 
             """
-            for key, values in var_lr_gen.items():
-                x_tr, x_te = train_test_split(var_lr_gen[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            for key, values in var_lr.items():
+                x_tr, x_te = train_test_split(var_lr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
                 X_train = X_train + (x_tr, )
                 X_test = X_test + (x_te, )
                 print('key lr', key)
@@ -274,12 +412,13 @@ class PreProcess(object):
                 print('y_tr', type(y_tr), len(y_tr))
                 print('y_te', len(y_te))
             """
-            x_tr, x_te, y_tr, y_te = [None]*len(var_lr_gen), [None]*len(var_lr_gen), [None]*len(var_hr), [None]*len(var_hr)
+            x_tr, x_te, y_tr, y_te = [None]*len(var_lr), [None]*len(var_lr), [None]*len(var_hr), [None]*len(var_hr)
+            const_tr, const_te = [None]*len(var_const_hr), [None]*len(var_const_hr)
             i = 0
-            for key, values in var_lr_gen.items():
-                x_tr_arr, x_te_arr = train_test_split(var_lr_gen[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            for key, values in var_lr.items():
+                x_tr_arr, x_te_arr = train_test_split(var_lr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
                 x_tr[i], x_te[i] = x_tr_arr, x_te_arr
-                print('key lr', key, i, len(var_lr_gen))
+                print('key lr', key, i, len(var_lr))
                 print('x_tr', type(x_tr[i]), np.shape(x_tr[i]))
                 print('x_te', np.shape(x_te[i]))
                 i += 1
@@ -287,7 +426,7 @@ class PreProcess(object):
             X_test  = np.stack(x_te, axis = 3)
             i = 0
             for key, values in var_hr.items():
-                y_tr_arr, y_te_arr = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE)
+                y_tr_arr, y_te_arr = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
                 y_tr[i], y_te[i] = y_tr_arr, y_te_arr
                 print('key hr', key, i, len(var_hr))
                 print('y_tr', type(y_tr[i]), np.shape(y_tr[i]))
@@ -295,16 +434,34 @@ class PreProcess(object):
                 i += 1
             y_train = np.stack(y_tr, axis = 3)
             y_test  = np.stack(y_te, axis = 3)
+            i = 0
+            for key, values in var_const_hr.items():
+                const_tr_arr, const_te_arr = train_test_split(var_const_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+                const_tr[i], const_te[i] = const_tr_arr, const_te_arr
+                print('key const_hr', key, i, len(var_const_hr))
+                print('const_tr', type(const_tr[i]), np.shape(const_tr[i]))
+                print('const_te', np.shape(const_te[i]))
+                i += 1
+            if var_const_hr:
+                const_train = np.stack(const_tr, axis = 3)
+                const_test  = np.stack(const_te, axis = 3)
+            else:
+                const_train = np.empty_like(y_train)
+                const_test  = np.empty_like(y_test)
 
         #X_train = np.asarray(X_train)
         #y_train = np.asarray(y_train)
         #X_test = np.asarray(X_test)
         #y_test = np.asarray(y_test)
-        print('Training dataset shape:', X_train.shape, y_train.shape)
-        print('Testing dataset shape:', X_test.shape, y_test.shape)
+        print('Training dataset shape:', X_train.shape, const_train.shape, y_train.shape)
+        print('Testing dataset shape:', X_test.shape, const_test.shape, y_test.shape)
 
-        dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-        dataset_valid = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+        #if var_const_hr:
+        dataset_train = tf.data.Dataset.from_tensor_slices(((X_train, const_train), y_train))
+        dataset_valid = tf.data.Dataset.from_tensor_slices(((X_test, const_test), y_test))
+        #else: 
+        #    dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+        #    dataset_valid = tf.data.Dataset.from_tensor_slices((X_test, y_test))
 
         dataset_train = dataset_train.batch(batch_size)
         dataset_valid = dataset_valid.batch(batch_size)
@@ -313,6 +470,8 @@ class PreProcess(object):
         print('dataset_valid type:', type(dataset_valid))
         print('dataset_train shape:', dataset_train.element_spec)
         print('dataset_valid shape:', dataset_valid.element_spec)
+        print('dataset_train len:', np.shape(dataset_train.element_spec[0]), np.shape(dataset_train.element_spec[0])[0], np.shape(dataset_train.element_spec[1]))
+        print('dataset_valid len:', np.shape(dataset_valid.element_spec[0]), np.shape(dataset_train.element_spec[1])[0], np.shape(dataset_valid.element_spec[1]))
 
         """
 
@@ -335,6 +494,6 @@ class PreProcess(object):
         print('Testing dataset shape:', X_testr.shape, y_testr.shape)
         """
 
-        return dataset_train, dataset_valid, X_train, X_test, y_train, y_test
+        return dataset_train, dataset_valid, X_train, X_test, const_train, const_test, y_train, y_test
         #return dataset_train, dataset_valid, X_trainr, X_testr, y_trainr, y_testr
 

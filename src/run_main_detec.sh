@@ -1,12 +1,10 @@
 #!/bin/bash 
 #SBATCH -N 1 
-#SBATCH -t 01:00:00 
-###SBATCH -t 16:00:00 
-###SBATCH -t 40:00:00 
+#SBATCH -t 06:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J SRGAN 
-#SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
+#SBATCH -J SRGAN_detec
+#SBATCH --chdir=/nobackup/rossby27/users/sm_fuxwa/Extreme_Detection/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH -A rossby
@@ -24,8 +22,7 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-python main.py -c config_main.ini 
-#python main.py -c config_main_EmiliaRomagna.ini 
+python main_detec.py -c config_main_detec.ini 
 #python srgans_fw.py
 
 #cd $HOME/Script/HCLIMAI
