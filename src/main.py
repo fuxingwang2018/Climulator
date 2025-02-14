@@ -18,6 +18,7 @@ def main():
         raise ValueError(f"\nConfig file, '{config_file}', does not exist!")
     cdict = get_configuration.get_settings(config_file)
 
+    METHOD = cdict['stats_conf']['SRGAN']['METHOD']
     BATCH_SIZE = cdict['stats_conf']['SRGAN']['BATCH_SIZE']
     EPOCHS = cdict['stats_conf']['SRGAN']['EPOCHS']
     EPOCH_INIT = cdict['stats_conf']['SRGAN']['EPOCH_INIT']
@@ -32,9 +33,15 @@ def main():
     NX = cdict['stats_conf']['TRAINING']['NX']
     NY = cdict['stats_conf']['TRAINING']['NY']
 
+    experiment_name = cdict['experiment_name']
     path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']
-    wdir = path_main + '/SRGAN_OUT/' + 'EPOCH' + str(EPOCHS) + '/'
-    path_figure = path_main + '/Figure/' + 'EPOCH' + str(EPOCHS) + '/'
+    wdir = path_main + '/SRGAN_OUT/' + 'EPOCH' + str(EPOCHS) + '_' + str(experiment_name) + '/'
+    path_figure = path_main + '/Figure/' + 'EPOCH' + str(EPOCHS) + '_' + str(experiment_name) + '/'
+
+    #file_filter = '' #'hr_2000' # 'July'
+    file_filter = cdict['file_filter'] #'hr_2000' # 'July'
+    file_filter_const = cdict['file_filter_const'] #'fx' 
+
     print(cdict['variables'])
 
     resolution_low = cdict['variables']['low resolution']['resolution']
@@ -58,11 +65,9 @@ def main():
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY)
     dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
     dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
-    file_filter = 'hr_2000' # 'July'
     downscale_mode = cdict['downscale mode']
 
     dir_const = path_x + '/'  + resolution_const + '/' + frequency_const # + '/orog/' 
-    file_filter_const = 'fx' 
 
     checkdir.checkdir(path_figure)
     checkdir.checkdir(wdir)
@@ -140,9 +145,9 @@ def main():
     # training
     trainmodel = train.TrainModel(wdir)
     generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
-        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, METHOD,
         dataset_train, dataset_valid)
-    y_pred = trainmodel.prediction(generator, X_test, const_test, y_test)
+    y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
     """
     y_pred = np.copy(y_test)
     """

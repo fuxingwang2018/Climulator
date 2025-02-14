@@ -1,11 +1,11 @@
 #!/bin/bash 
 #SBATCH -N 1 
-#SBATCH -t 01:00:00 
-###SBATCH -t 16:00:00 
+###SBATCH -t 01:00:00 
+#SBATCH -t 16:00:00 
 ###SBATCH -t 40:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J ViT 
+#SBATCH -J SG 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -24,9 +24,9 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-#python main.py -c config_main.ini 
+python main.py -c config_main_SG_TestDomain.ini 
 #python main.py -c config_main_EmiliaRomagna.ini 
-python test_vit.py
+#python srgans_fw.py
 
 #cd $HOME/Script/HCLIMAI
 #python -m pytest

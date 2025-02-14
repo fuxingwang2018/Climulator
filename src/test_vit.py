@@ -94,8 +94,10 @@ def build_vit_generator(nx, nz):
 
     # Upsampling and concatenation with orography
     x = layers.Conv2DTranspose(64, (4, 4), strides=(4, 4), padding='same', activation='relu')(vit_output)
+    #x = layers.Conv2DTranspose(64, (4, 4), strides=(2, 2), padding='same', activation='relu')(vit_output)
     x = layers.Concatenate()([x, orography])
     x = layers.Conv2DTranspose(64, (4, 4), strides=(1, 1), padding='same', activation='relu')(x)
+    #x = layers.Conv2DTranspose(64, (4, 4), strides=(2, 2), padding='same', activation='relu')(x)
 
     # Final output layer
     outputs = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
@@ -112,6 +114,11 @@ orography = tf.random.normal((test_size, nx * 4, nz * 4, 1))  # Batch size 1, or
 
 # Predict
 generator = build_vit_generator(nx, nz)
+for layer in generator.layers:
+    print(f"{layer.name}: {layer.input_shape} -> {layer.output_shape}, {generator.input_shape}, ")
+    intermediate_model = Model(inputs=generator.input, outputs=layer.output)
+    intermediate_output = intermediate_model.predict([inputs, orography])
+    print(f"Layer {layer.name} output shape: {intermediate_output.shape}")
 output = generator.predict([inputs, orography])
 print("Generated output shape:", output.shape)
 

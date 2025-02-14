@@ -53,6 +53,9 @@ def get_settings(config_file):
         'path_main': conf_dict['SETTINGS']['path_main'],
         'path_x': conf_dict['SETTINGS']['path_x'],
         'path_y': conf_dict['SETTINGS']['path_y'],
+        'file_filter': conf_dict['SETTINGS']['file_filter'],
+        'file_filter_const': conf_dict['SETTINGS']['file_filter_const'],
+        'experiment_name': conf_dict['SETTINGS']['experiment_name'],
     }
 
     return d

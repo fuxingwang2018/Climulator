@@ -1,0 +1,5 @@
+name: rcat
+channels:
+  - conda-forge
+  - nodefaults
+prefix: /home/sm_fuxwa/.conda/envs/rcat

@@ -25,7 +25,7 @@ class TrainModel(object):
 
 
     def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
-        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, METHOD,
         dataset_train, dataset_valid):
 
         # https://www.tensorflow.org/tutorials/keras/save_and_load 
@@ -92,7 +92,7 @@ class TrainModel(object):
         else:
             initial_epoch = 0
             #if np.shape(dataset_train.element_spec[0])[0] > 1:
-            generator = model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
+            generator = model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE, METHOD)
             #else:
             #    generator = model_generator_no_const_input(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
             #generator = Generator((int(NY / SUBSAMPLING_LR), int(NX / SUBSAMPLING_LR), INPUT_CHANNELS)).generator()
@@ -133,19 +133,20 @@ class TrainModel(object):
         return generator
 
 
-    def prediction(self, generator, X_test, const_test, y_test):
+    def prediction(self, generator, X_test, const_test, y_test, batch_size):
 
+        """
+        #tf.debugging.enable_check_numerics()
         print('X_test, const_test shape:', X_test.shape, const_test.shape)
+        #generator.trainable = False
         for layer in generator.layers:
-            print(f"{layer.name}: {layer.input_shape} -> {layer.output_shape}")
+            print(f"{layer.name}: {layer.input_shape} -> {layer.output_shape}, {generator.input_shape} ")
             intermediate_model = Model(inputs=generator.input, outputs=layer.output)
-            intermediate_output = intermediate_model.predict([X_test, const_test])
+            intermediate_output = intermediate_model.predict([X_test, const_test], batch_size=batch_size)
             print(f"Layer {layer.name} output shape: {intermediate_output.shape}")
-
-        tf.debugging.enable_check_numerics()
-
         print('End of Debug')
-        y_pred = generator.predict([X_test, const_test])
+        """
+        y_pred = generator.predict([X_test, const_test], batch_size=batch_size)
         np.savez_compressed(self.wdir + 'preds', hr = y_test, hr_p = y_pred)
 
         return y_pred
