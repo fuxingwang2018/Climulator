@@ -28,7 +28,7 @@ process_directory() {
     mkdir -p "$output_dir"
 
     # Loop through all NetCDF files in the current directory
-    for file in "$input_dir"/*.nc; do
+    for file in "$input_dir"/mrso_*.nc; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")  # Extract the filename
             output_file="$output_dir/$filename"
