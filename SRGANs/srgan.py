@@ -1,5 +1,15 @@
 import tensorflow as tf
 from tensorflow.keras import models, metrics
+from utils import gpus_func 
+
+
+num_gpus = gpus_func.get_num_gpus()
+
+def conditional_tf_function(func):
+    """Apply @tf.function only if num_gpus < 2."""
+    if num_gpus < 2:
+        return tf.function(func)
+    return func  # Return the function as-is if num_gpus >= 2
 
 
 class SRGAN(models.Model):
@@ -18,7 +28,8 @@ class SRGAN(models.Model):
         self.gen_loss = generator_loss
         self.disc_loss = discriminator_loss
 
-    @tf.function
+    #@tf.function
+    @conditional_tf_function
     def train_step(self, data):
         lr_predic = data[0]
         hr_predic = data[1]
@@ -29,6 +40,10 @@ class SRGAN(models.Model):
             
             real_ptv = self.discriminator(hr_predic, training=True)
             fake_ptv = self.discriminator(generated_batch, training=True)
+            #print('lr_predic:', type(lr_predic), lr_predic)
+            #print('fake_ptv.shape:', fake_ptv.shape)
+            #print('generated_batch.shape:', generated_batch.shape)
+            #print('hr_predic.shape:', hr_predic.shape)
             gen_loss = self.gen_loss(fake_ptv, generated_batch, hr_predic)
             disc_loss = self.disc_loss(real_ptv, fake_ptv)
 
@@ -42,7 +57,8 @@ class SRGAN(models.Model):
         self.loss_tracker_2.update_state(disc_loss)
         return {"gen_loss": self.loss_tracker_1.result(), "disc_loss": self.loss_tracker_2.result()}
 
-    @tf.function
+    #@tf.function
+    @conditional_tf_function
     def test_step(self, data):
         lr_predic = data[0]
         hr_predic = data[1]

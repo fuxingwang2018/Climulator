@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
 import numpy as np
-
+from scipy.ndimage import gaussian_filter
 
 class PreProcess(object):
     """ Data pre-processing """
@@ -231,8 +231,8 @@ class PreProcess(object):
             low_res_shape = var_low_res_adjusted_dict[key].shape
 
             print('key', key)
-            print('low_res_shape', low_res_shape, type(low_res_shape))
-            print('high_res_shape', high_res_shape, type(high_res_shape))
+            #print('low_res_shape', low_res_shape, type(low_res_shape))
+            #print('high_res_shape', high_res_shape, type(high_res_shape))
 
             # var_low_res_adjusted_dict[key] and var_high_adjusted_res_dict[key] should be divisible for lon & lat dimension (1 & 2 in python)
             #if key in var_high_res_adjusted_dict:
@@ -419,8 +419,8 @@ class PreProcess(object):
                 x_tr_arr, x_te_arr = train_test_split(var_lr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
                 x_tr[i], x_te[i] = x_tr_arr, x_te_arr
                 print('key lr', key, i, len(var_lr))
-                print('x_tr', type(x_tr[i]), np.shape(x_tr[i]))
-                print('x_te', np.shape(x_te[i]))
+                #print('x_tr', type(x_tr[i]), np.shape(x_tr[i]))
+                #print('x_te', np.shape(x_te[i]))
                 i += 1
             X_train = np.stack(x_tr, axis = 3)
             X_test  = np.stack(x_te, axis = 3)
@@ -462,9 +462,11 @@ class PreProcess(object):
         #else: 
         #    dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
         #    dataset_valid = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+        print('dataset_train 0 shape:', dataset_train.element_spec)
+        print('dataset_valid 0 shape:', dataset_valid.element_spec)
 
-        dataset_train = dataset_train.batch(batch_size)
-        dataset_valid = dataset_valid.batch(batch_size)
+        dataset_train = dataset_train.batch(batch_size, drop_remainder=True)
+        dataset_valid = dataset_valid.batch(batch_size, drop_remainder=True)
 
         print('dataset_train type:', type(dataset_train))
         print('dataset_valid type:', type(dataset_valid))
@@ -497,3 +499,34 @@ class PreProcess(object):
         return dataset_train, dataset_valid, X_train, X_test, const_train, const_test, y_train, y_test
         #return dataset_train, dataset_valid, X_trainr, X_testr, y_trainr, y_testr
 
+
+
+    def fill_missing_with_interpolation(self, data):
+
+        mask = np.isnan(data)
+        data_filled = gaussian_filter(np.nan_to_num(data), sigma=1)  # Smooth out missing values
+        data[mask] = data_filled[mask]  # Replace only missing values
+
+        return data
+
+
+    def fill_missing_with_interpolation_dict(self, var_in_dict):
+
+        """
+        Filter data from high resolution (hr, eg, 3 km) to low resolution (lr, eg, 12 km)
+
+        :param var_low_res_dict: variable at low resolution 
+        :type var_low_res_dict: dictionary
+        :param var_high_res_dict: variable at high resolution 
+        :type var_high_res_dict: dictionary
+        :return: var_low_res_gen_dict, generated variable at low resolution from high resolution variable
+        :rtype: dictionary
+        """
+
+        var_out_dict = {}
+
+        for key, values in var_in_dict.items():
+            var_out_dict[key] = self.fill_missing_with_interpolation(var_in_dict[key])
+
+
+        return var_out_dict

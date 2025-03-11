@@ -4,10 +4,12 @@ import preprocess
 import postprocess
 import get_configuration
 sys.path.insert(0, '..')
-from utils import read, checkdir, file_writer 
+from utils import read, checkdir, file_writer, gpus_func 
 from SRGANs import feature_selection, train
 import numpy as np
 import glob
+import tensorflow as tf
+from tensorflow.keras import mixed_precision
 
 def main():
 
@@ -32,6 +34,9 @@ def main():
     #OUTPUT_CHANNELS = cdict['stats_conf']['TRAINING']['OUTPUT_CHANNELS']
     NX = cdict['stats_conf']['TRAINING']['NX']
     NY = cdict['stats_conf']['TRAINING']['NY']
+    LEARNING_RATE = cdict['stats_conf']['TRAINING']['LEARNING_RATE']
+    DROPOUT_RATE = cdict['stats_conf']['TRAINING']['DROPOUT_RATE']
+    EARLY_STOP = cdict['stats_conf']['TRAINING']['EARLY_STOP']
 
     experiment_name = cdict['experiment_name']
     path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']
@@ -62,7 +67,8 @@ def main():
 
     OUTPUT_CHANNELS = len(varname_predictand_high_res) #+ len(varname_const)
 
-    print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY)
+    print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, \
+            NX, NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
     dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
     dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
     downscale_mode = cdict['downscale mode']
@@ -101,6 +107,17 @@ def main():
 
     preproc = preprocess.PreProcess()
 
+    """
+    threshold = 1e10
+    if any((value > threshold).any() for value in var_low_res_dict.values()):
+        print('missing values in var_low_res_dict', var_low_res_dict.keys)
+        var_low_res_dict  = preproc.fill_missing_with_interpolation_dict(var_low_res_dict)
+
+    if any((value > threshold).any() for value in var_high_res_dict.values()):
+        print('missing values in var_high_res_dict', var_high_res_dict.keys)
+        var_high_res_dict = preproc.fill_missing_with_interpolation_dict(var_high_res_dict)
+    """
+
     var_low_res_adjusted_dict, var_const_high_res_adjusted_dict, var_high_res_adjusted_dict, \
         residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict = \
         preproc.adjust_data_size(var_low_res_dict, var_const_high_res_dict, var_high_res_dict, BATCH_SIZE)
@@ -125,6 +142,44 @@ def main():
     for key, values in var_low_res_filtered_dict.items():
         print('shape var_low_res_filtered:', values.shape)
 
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+    num_gpus = gpus_func.get_num_gpus()
+    #print('num_gpus', num_gpus)
+
+    #if num_gpus > 0:
+    #    mixed_precision.set_global_policy("mixed_float16")
+
+    multiple_GPUs_with_virtual_devices = False #False
+
+    # Limit GPU memory usage (optional)
+    if num_gpus <= 1:
+        # one gpu 
+        gpus = tf.config.list_physical_devices('GPU')
+        print('gpus:', gpus)
+        if gpus:
+            try:
+                tf.config.set_visible_devices(gpus[0], 'GPU')
+                # Currently, memory growth needs to be the same across GPUs
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    #tf.config.experimental.set_virtual_device_configuration(gpus[0],
+                    #    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
+                    #    )
+                logical_gpus = tf.config.list_logical_devices('GPU')
+                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+
+                if multiple_GPUs_with_virtual_devices:
+                    tf.config.set_logical_device_configuration(
+                        gpus[0],
+                        [tf.config.LogicalDeviceConfiguration(memory_limit=1024),
+                         tf.config.LogicalDeviceConfiguration(memory_limit=1024)])
+            except RuntimeError as e:
+                # Memory growth must be set before GPUs have been initialized
+                print('No GPU Error!')
+                print(e)
+
+
     postproc = postprocess.PostProcess()
     postproc.plot_input_data(\
         var_low_res_filtered_dict, \
@@ -142,15 +197,58 @@ def main():
     print('X_test, const_test, y_test:', np.shape(X_test), np.shape(const_test), np.shape(y_test))
     postproc.plot_result(y_test, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
 
-    # training
-    trainmodel = train.TrainModel(wdir)
-    generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
-        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, METHOD,
-        dataset_train, dataset_valid)
+    """
+    #Apply Data Augmentation
+    data_augmentation = tf.keras.Sequential([
+        tf.keras.layers.RandomFlip("horizontal"),  # Random horizontal flip
+        tf.keras.layers.RandomRotation(0.1),      # Small random rotation
+        tf.keras.layers.RandomZoom(0.1),          # Random zoom
+    ])
+    # Apply augmentation to LR and HR images
+    dataset_train = data_augmentation(dataset_train)
+    dataset_valid = data_augmentation(dataset_valid)
+    """
+
+
+    if num_gpus <= 1:
+        # training
+        trainmodel = train.TrainModel(wdir)
+        generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
+            SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+            METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
+            dataset_train, dataset_valid)
+
+    elif num_gpus > 1:
+
+        gpus = tf.config.list_physical_devices('GPU')
+        if gpus:
+            try:
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    tf.config.experimental.set_virtual_device_configuration(gpus[0],
+                        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
+                        )
+
+                print("Enabled GPU memory growth")
+            except RuntimeError as e:
+                print(e)
+
+        # Enable multi-GPU strategy
+        tf.debugging.set_log_device_placement(True)
+        strategy = gpus_func.get_strategy()
+
+        print(f"Number of GPUs Available: {strategy.num_replicas_in_sync}")
+
+        with strategy.scope():
+            # training
+            trainmodel = train.TrainModel(wdir)
+            generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
+                SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+                METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
+                dataset_train, dataset_valid)
+
     y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
-    """
-    y_pred = np.copy(y_test)
-    """
+
     print('min max of y_test', np.nanmin(y_test), np.nanmax(y_test))
     print('min max of y_pred', np.nanmin(y_pred), np.nanmax(y_pred))
 

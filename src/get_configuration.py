@@ -28,14 +28,8 @@ def get_settings(config_file):
     """
     conf_dict = ini_reader.get_config_dict(config_file)
     d = {
-        'models': conf_dict['MODELS'],
-        'obs metadata file': conf_dict['OBS']['metadata file'],
-        'obs start year': conf_dict['OBS']['start year'],
-        'obs end year': conf_dict['OBS']['end year'],
-        'obs months': conf_dict['OBS']['months'],
         'downscale mode': conf_dict['SETTINGS']['downscale mode'],
         'variables': conf_dict['SETTINGS']['variables'],
-        'var modification': conf_dict['SETTINGS']['variable modification'],
         #'regions': conf_dict['SETTINGS']['regions'],
         'coordinates_of_detection_area': conf_dict['SETTINGS']['coordinates_of_detection_area'], 
         'requested_stats': conf_dict['STATISTICS']['stats'],
@@ -49,7 +43,6 @@ def get_settings(config_file):
         'cluster type': conf_dict['CLUSTER']['cluster type'],
         'nodes': conf_dict['CLUSTER']['nodes'],
         'cluster kwargs': conf_dict['CLUSTER']['cluster kwargs'],
-        'outdir': conf_dict['SETTINGS']['output dir'],
         'path_main': conf_dict['SETTINGS']['path_main'],
         'path_x': conf_dict['SETTINGS']['path_x'],
         'path_y': conf_dict['SETTINGS']['path_y'],
@@ -81,7 +74,10 @@ def default_stats_config(stats):
             'SUBSAMPLING_LR': 4, 
             'N_RES_BLOCK': 8, 
             'NX': 104,
-            'NY': 88} 
+            'NY': 88,
+            'LEARNING_RATE':1e-4,
+            'DROPOUT_RATE':0.3, 
+            'EARLY_STOP':False} 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 

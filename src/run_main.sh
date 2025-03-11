@@ -5,11 +5,10 @@
 ###SBATCH -t 40:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J SRGAN 
-#SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
+#SBATCH -J CDS 
+#SBATCH --chdir=/scratch/smf/tmp/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH -A rossby
 ###SBATCH --qos=low
 
 module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb

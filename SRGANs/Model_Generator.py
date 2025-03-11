@@ -4,6 +4,7 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, LayerNormalization, Reshape
 from SRGANs import ViT, SwinTransformer
 from tensorflow.keras.applications import EfficientNetV2B0
+from tensorflow.keras.regularizers import l2
 
 # https://github.com/paulaharder/deep-downscaling-overview
 
@@ -102,31 +103,31 @@ def model_generator_vit(nx, nz, channels, subsampling, n_res_block, batch_size):
 
 
 
-def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, method):
+def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_block, batch_size, method, dropout_rate):
 
-    inputs_low_res = layers.Input(shape=(int(nz / subsampling), int(nx / subsampling), channels), batch_size=batch_size, name='low-res-input')
+    inputs_low_res = layers.Input(shape=(int(nz / subsampling), int(nx / subsampling), input_channels), batch_size=batch_size, name='low-res-input')
     inputs_high_res = layers.Input(shape=(int(nz), int(nx), 1), batch_size=batch_size, name='high-res-input')  
 
     if method == 'EffNetV2':
         # EfficientNetV2 feature extraction
         if int(nz / subsampling) < 32 or int(nx / subsampling) < 32:
             resized_input = layers.Resizing(32, 32)(inputs_low_res)
-            base_model = EfficientNetV2B0(include_top=False, weights=None, input_shape=(32, 32, channels))
+            base_model = EfficientNetV2B0(include_top=False, weights=None, input_shape=(32, 32, input_channels))
             effnetv2_output = base_model(resized_input)
 
         else:
-            base_model = EfficientNetV2B0(include_top=False, weights=None, input_shape=(int(nz), int(nx), channels))
+            base_model = EfficientNetV2B0(include_top=False, weights=None, input_shape=(int(nz), int(nx), input_channels))
             effnetv2_output = base_model(inputs_low_res)
 
         """
         #inputs_low_res = layers.Conv2D(filters = 64, kernel_size = 3, strides = 2, padding = "same", activation="relu")(effnetv2_output)
-        inputs_low_res = layers.Conv2DTranspose(channels, (3, 3), strides=(4, 4), padding="same", activation="relu")(effnetv2_output)
-        inputs_low_res = layers.Conv2DTranspose(channels, (3, 3), strides=(4, 4), padding="same", activation="relu")(inputs_low_res)
-        inputs_low_res = layers.Conv2DTranspose(channels, (3, 3), strides=(2, 2), padding="same", activation="relu")(inputs_low_res)
+        inputs_low_res = layers.Conv2DTranspose(input_channels, (3, 3), strides=(4, 4), padding="same", activation="relu")(effnetv2_output)
+        inputs_low_res = layers.Conv2DTranspose(input_channels, (3, 3), strides=(4, 4), padding="same", activation="relu")(inputs_low_res)
+        inputs_low_res = layers.Conv2DTranspose(input_channels, (3, 3), strides=(2, 2), padding="same", activation="relu")(inputs_low_res)
         """
 
         # Final layer to match the original input shape
-        inputs_low_res = layers.Conv2D(channels, (3, 3), strides=1, activation="sigmoid", padding="same")(effnetv2_output)
+        inputs_low_res = layers.Conv2D(input_channels, (3, 3), strides=1, activation="sigmoid", padding="same")(effnetv2_output)
         print('inputs_low_res', inputs_low_res.shape)
         # Reshape the final output to match input size
         inputs_low_res = layers.Resizing(int(nz / subsampling), int(nx / subsampling))(inputs_low_res)
@@ -136,11 +137,14 @@ def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, meth
         inputs_low_res = layers.UpSampling2D(size=(subsampling, subsampling))(inputs_low_res)
         swin_output = SwinTransformer.window_partition(inputs_low_res, window_size=subsampling)  # Partition to windows
         #swin_output = SwinTransformer.SwinTransformerBlock(num_heads=4, embed_dim=64, window_size=subsampling, mlp_dim=128)(swin_output)
-        swin_output = SwinTransformer.SwinTransformerBlock(num_heads=4, embed_dim=channels, window_size=subsampling, mlp_dim=128)(swin_output)
+        swin_output = SwinTransformer.SwinTransformerBlock(num_heads=4, embed_dim=input_channels, window_size=subsampling, mlp_dim=128)(swin_output)
         swin_output = SwinTransformer.window_reverse(swin_output, window_size=subsampling, H=int(nz), W=int(nx))  # Reverse to feature map
         inputs_low_res = layers.AveragePooling2D(pool_size=(subsampling, subsampling,))(swin_output)
 
     conv_1 = layers.Conv2D(filters=64, kernel_size=7, strides=1, activation='linear', padding='same')(inputs_low_res)
+
+    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+        conv_1 = layers.Dropout(dropout_rate)(conv_1)  # Add Dropout, increase 0.3 if overfitting persists.
 
     prelu_1 = layers.PReLU()(conv_1) #layers.PReLU(alpha_initializer='zeros', alpha_regularizer=None, alpha_constraint=None, shared_axes=[2,3])(conv_1)
     
@@ -148,9 +152,12 @@ def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, meth
 
     for index in range(n_res_block):
 
-        res_block = res_block_gen(res_block, 3, 64, 1)
+        #res_block = res_block_gen(res_block, 3, 64, 1)
+        res_block = res_block_gen(res_block, 3, 64, 1, dropout_rate)
 
     conv_2 = layers.Conv2D(filters = 64, kernel_size = 3, strides = 1, padding = "same")(res_block) 
+    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+        conv_2 = layers.Dropout(dropout_rate)(conv_2)  # Add Dropout, increase 0.3 if overfitting persists.
 
 
     if method == 'ViT':
@@ -171,10 +178,12 @@ def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, meth
 
     combined_input = layers.Concatenate()([up_sampling, inputs_high_res])
     combined_input = layers.Conv2D(filters=64, kernel_size = 3, strides = 1, padding='same', activation='relu')(combined_input)
+    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+        combined_input = layers.Dropout(dropout_rate)(combined_input)  # Add Dropout, increase 0.3 if overfitting persists.
 
     # Vision Transformer Block
     #vit_output = ViT.vit_block_v1(combined_input, num_patches = int(nz) * int(nx), projection_dim=64, transformer_layers=2)
-    #vit_output = ViT.vit_block_v3(combined_input, patch_size = subsampling, projection_dim=64)
+    ##vit_output = ViT.vit_block_v3(combined_input, patch_size = subsampling, projection_dim=64)
     #print('vit_output shape:', vit_output.shape)
 
     """
@@ -203,8 +212,9 @@ def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, meth
         combined_input = layers.Resizing(nz, nx)(combined_input)
     """
 
-    conv_3 = layers.Conv2D(filters = 1, kernel_size = 3, strides = 1, padding = "same")(combined_input)
-    #conv_3 = layers.Conv2D(filters = 2, kernel_size = 3, strides = 1, padding = "same")(combined_input)
+    conv_3 = layers.Conv2D(filters = output_channels, kernel_size = 3, strides = 1, padding = "same")(combined_input)
+    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+    #    conv_3 = layers.Dropout(dropout_rate)(conv_3)  # Add Dropout, increase 0.3 if overfitting persists.
 
     outputs = conv_3
 
@@ -215,15 +225,23 @@ def model_generator(nx, nz, channels, subsampling, n_res_block, batch_size, meth
     return model
 
 
-def res_block_gen(model, kernal_size, filters, strides):
+def res_block_gen(model, kernal_size, filters, strides, dropout_rate):
 
     gen = model
     
     model = layers.Conv2D(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
+
+    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+    #    model = layers.Dropout(dropout_rate)(model)  # Add Dropout, increase 0.3 if overfitting persists.
+
     model = layers.BatchNormalization(momentum = 0.5)(model)
     # Using Parametric ReLU
     model = layers.PReLU()(model) #layers.PReLU(alpha_initializer='zeros', alpha_regularizer=None, alpha_constraint=None, shared_axes=[2,3])(model)
     model = layers.Conv2D(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
+
+    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+    #    model = layers.Dropout(dropout_rate)(model)  # Add Dropout, increase 0.3 if overfitting persists.
+
     model = layers.BatchNormalization(momentum = 0.5)(model)
         
     model = layers.Add()([gen, model])

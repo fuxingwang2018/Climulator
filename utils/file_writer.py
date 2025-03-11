@@ -129,14 +129,14 @@ class FileWriter(object):
         # Constant variable
         for var in nc_vars_2d:
             if nam_lon in var or nam_lat in var:
-                print('nc_file_2D_id.variables[var].dtype', var, nc_file_2D_id.variables[var].dtype)
+                #print('nc_file_2D_id.variables[var].dtype', var, nc_file_2D_id.variables[var].dtype)
                 data_var[var] = w_nc_file_out_id.createVariable(var, nc_file_2D_id.variables[var].dtype,\
                     nc_file_2D_id.variables[var].dimensions, fill_value=-9999.9)
                 for ncattr in nc_file_2D_id.variables[var].ncattrs():
                     if str(ncattr) != '_FillValue':
                         data_var[var].setncattr(ncattr, nc_file_2D_id.variables[var].getncattr(ncattr))
-                    print(var, np.shape(nc_file_2D_id.variables[var][:]))
-                    print(var, np.shape(nc_file_2D_id.variables[var][1:-1, :]))
+                    #print(var, np.shape(nc_file_2D_id.variables[var][:]))
+                    #print(var, np.shape(nc_file_2D_id.variables[var][1:-1, :]))
                     w_nc_file_out_id.variables[var][:] = nc_file_2D_id.variables[var][y_start:y_end, x_start:x_end]
                     #w_nc_file_out_id.variables[var][:] = nc_file_2D_id.variables[var][:]
 
@@ -149,7 +149,7 @@ class FileWriter(object):
                     #print 'shape of var_2D:', np.shape(var_2D)
 
                 # Create variable
-                print('nc_file_2D_id.variables[nc_var_to_read].dtype', nc_var_to_read, nc_file_2D_id.variables[nc_var_to_read].dtype)
+                #print('nc_file_2D_id.variables[nc_var_to_read].dtype', nc_var_to_read, nc_file_2D_id.variables[nc_var_to_read].dtype)
                 #data_var[var] = w_nc_file_out_id.createVariable(var, nc_file_2D_id.variables[nc_var_to_read].dtype, \
                 data_var[var] = w_nc_file_out_id.createVariable(var, 'float64', \
                  ('time', 'y', 'x'), fill_value=-9999.9) 	
@@ -160,7 +160,7 @@ class FileWriter(object):
                         data_var[var].setncattr(ncattr, nc_file_2D_id.variables[nc_var_to_read].getncattr(ncattr))
 
                 # Assign values to variables
-                print ('shape of var_2D, min, max', var, var_2D_dict[var].shape, np.nanmin(var_2D_dict[var]), np.nanmax(var_2D_dict[var]))
+                #print ('shape of var_2D, min, max', var, var_2D_dict[var].shape, np.nanmin(var_2D_dict[var]), np.nanmax(var_2D_dict[var]))
                 w_nc_file_out_id.variables[var][:] = var_2D_dict[var]
         #
         # Close NetCDF files.

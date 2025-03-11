@@ -16,6 +16,7 @@ from utils import read
 from SRGANs.Network import Generator
 import postprocess
 from keras.models import Model
+import glob
 
 class TrainModel(object):
 
@@ -25,7 +26,8 @@ class TrainModel(object):
 
 
     def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
-        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, METHOD,
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+        METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
         dataset_train, dataset_valid):
 
         # https://www.tensorflow.org/tutorials/keras/save_and_load 
@@ -35,10 +37,10 @@ class TrainModel(object):
  
         model_name = f"model_1"
 
-        #generator_optimizer = optimizers.Adam(1e-4)
-        #discriminator_optimizer = optimizers.Adam(1e-4)
-        generator_optimizer = optimizers.legacy.Adam(1e-4)
-        discriminator_optimizer = optimizers.legacy.Adam(1e-4)
+        generator_optimizer = optimizers.Adam(LEARNING_RATE) #1e-4)
+        discriminator_optimizer = optimizers.Adam(LEARNING_RATE) #1e-4)
+        #generator_optimizer = optimizers.legacy.Adam(1e-4)
+        #discriminator_optimizer = optimizers.legacy.Adam(1e-4)
 
         #subsampling_lr = 4
         #n_res_block = 8
@@ -48,8 +50,15 @@ class TrainModel(object):
         #nx = 104
         #ny = 88
 
+
+        early_stopping = tf.keras.callbacks.EarlyStopping(
+            monitor='val_gen_loss',  # Monitor validation generator loss
+            patience=5,  # Stop training if no improvement for 5 epochs
+            restore_best_weights=True,  # Restore best model weights
+            verbose=1
+        )
         #checkpoint_filepath = self.wdir + 'checkpoint_NN'
-        checkpoint_filepath = self.wdir + 'checkpoint_{epoch:04d}'
+        checkpoint_filepath = self.wdir + 'checkpoint_{epoch:04d}.weights.h5'
         print ('checkpoint_filepath', checkpoint_filepath)
 
         # Create a callback that saves the model's weights
@@ -59,8 +68,12 @@ class TrainModel(object):
             monitor='val_gen_loss',
             mode='min',
             save_best_only=True)
+        #save_freq='epoch',
 
         callbacks_list = [checkpoint]
+
+        if EARLY_STOP:
+            callbacks_list = [checkpoint, early_stopping]
 
         checkpoint_filepath_iniepoch = os.path.dirname(os.path.dirname(self.wdir)) + '/EPOCH' + str(EPOCH_INIT) + '/'
         # Load checkpoint:
@@ -90,18 +103,21 @@ class TrainModel(object):
             print('loss, acc using initial_epoch weights =', loss, acc)
 
         else:
+
             initial_epoch = 0
+
             #if np.shape(dataset_train.element_spec[0])[0] > 1:
-            generator = model_generator(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE, METHOD)
+            generator = model_generator(NX, NY, INPUT_CHANNELS, OUTPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE, METHOD, DROPOUT_RATE)
             #else:
             #    generator = model_generator_no_const_input(NX, NY, INPUT_CHANNELS, SUBSAMPLING_LR, N_RES_BLOCK, BATCH_SIZE)
             #generator = Generator((int(NY / SUBSAMPLING_LR), int(NX / SUBSAMPLING_LR), INPUT_CHANNELS)).generator()
-            discriminator = model_discriminator(NX, NY, OUTPUT_CHANNELS, BATCH_SIZE)
+            discriminator = model_discriminator(NX, NY, OUTPUT_CHANNELS, BATCH_SIZE, DROPOUT_RATE)
 
             model = SRGAN(generator, discriminator)
             model.compile(generator_optimizer, discriminator_optimizer, generator_loss, discriminator_loss)
             #print ('model compile:', model.summary())
 
+        #model.enable_gradient_checkpointing()
         # Start/resume training
         # Train the model with the new callback
         # Model weights are saved at the end of every epoch, if it's the best seen so far.
@@ -119,10 +135,21 @@ class TrainModel(object):
         postproc = postprocess.PostProcess()
         postproc.plot_lines(hist.history, path_figure_loss)
 
+
         # The latest model weights (that are considered the best) are loaded into the model.
-        latest = tf.train.latest_checkpoint(os.path.dirname(self.wdir))
-        print('latest', latest)
-        model.load_weights(latest)
+        checkpoint_files = glob.glob(os.path.join(self.wdir, "*.weights.h5"))
+        """
+        if checkpoint_files:
+            latest = max(checkpoint_files, key=os.path.getctime)  # Get latest modified file
+            print("Manually found checkpoint:", latest)
+            model.built = True
+            model.load_weights(latest)
+        else:
+            print("No checkpoint files found in:", self.wdir)
+        """
+        #latest = tf.train.latest_checkpoint(os.path.dirname(self.wdir))
+        latest = max(checkpoint_files, key=os.path.getctime)  # Get latest modified file
+        #model.load_weights(latest)
         loss, acc = model.evaluate(dataset_train, verbose=2)
         print('loss, acc using latest weights =', loss, acc)
 
