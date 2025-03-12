@@ -2,20 +2,18 @@
 #SBATCH -N 1 
 ###SBATCH -t 01:00:00 
 ###SBATCH -t 16:00:00 
-#SBATCH -t 40:00:00 
+#SBATCH -t 42:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J SG 
+#SBATCH -J ViT_ER
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH -A rossby
+#SBATCH -C fat
 ###SBATCH --qos=low
 
 module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb
-
-DOMAIN='EmiliaRomagna'
-#DOMAIN='TestDomain'
 
 current_date_time="`date`";
 echo The run starts from $current_date_time
@@ -27,8 +25,8 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-python main.py -c config_main_SG_${DOMAIN}.ini 
-#python srgans_fw.py
+#python main.py -c config_main_ViT_TestDomain.ini 
+python main.py -c $HOME/Script/HCLIMAI/config/config_main_ViT_EmiliaRomagna.ini 
 
 #cd $HOME/Script/HCLIMAI
 #python -m pytest

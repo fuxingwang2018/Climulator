@@ -1,11 +1,11 @@
 #!/bin/bash 
 #SBATCH -N 1 
 ###SBATCH -t 01:00:00 
-#SBATCH -t 16:00:00 
-###SBATCH -t 40:00:00 
+###SBATCH -t 16:00:00 
+#SBATCH -t 40:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J Swin 
+#SBATCH -J SG 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -13,6 +13,9 @@
 ###SBATCH --qos=low
 
 module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb
+
+DOMAIN='EmiliaRomagna'
+#DOMAIN='TestDomain'
 
 current_date_time="`date`";
 echo The run starts from $current_date_time
@@ -24,8 +27,7 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-python main.py -c config_main_Swin_TestDomain.ini 
-#python main.py -c config_main_EmiliaRomagna.ini 
+python main.py -c $HOME/Script/HCLIMAI/config/config_main_SG_${DOMAIN}.ini 
 #python srgans_fw.py
 
 #cd $HOME/Script/HCLIMAI

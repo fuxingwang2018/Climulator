@@ -36,7 +36,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/HCLIMAI/src
-python3 main.py -c config_main_SG_${DOMAIN}.ini 
+python3 main.py -c $HOME/Scripts/HCLIMAI/config/config_main_SG_${DOMAIN}.ini 
 
 #cd $HOME/Script/HCLIMAI
 #python -m pytest

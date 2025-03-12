@@ -24,7 +24,7 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/HCLIMAI/src
-python main.py -c config_main_EffNetV2_TestDomain.ini 
+python main.py -c $HOME/Script/HCLIMAI/config/config_main_EffNetV2_TestDomain.ini 
 #python main.py -c config_main_EmiliaRomagna.ini 
 #python srgans_fw.py
 
