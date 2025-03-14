@@ -105,6 +105,42 @@ def main():
             #var_low_res_dict[key] = var_const_filtered[0,:,:]
             ##var_low_res_dict[key] = np.delete(var_const_filtered, axis = 0)
 
+
+    num_gpus = gpus_func.get_num_gpus()
+    #print('num_gpus', num_gpus)
+
+    #if num_gpus > 0:
+    #    mixed_precision.set_global_policy("mixed_float16")
+
+    multiple_GPUs_with_virtual_devices = False #False
+
+    # Limit GPU memory usage (optional)
+    if num_gpus <= 1:
+        # one gpu 
+        gpus = tf.config.list_physical_devices('GPU')
+        print('gpus:', gpus)
+        if gpus:
+            try:
+                tf.config.set_visible_devices(gpus[0], 'GPU')
+                # Currently, memory growth needs to be the same across GPUs
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    #tf.config.experimental.set_virtual_device_configuration(gpus[0],
+                    #    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
+                    #    )
+                logical_gpus = tf.config.list_logical_devices('GPU')
+                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+
+                if multiple_GPUs_with_virtual_devices:
+                    tf.config.set_logical_device_configuration(
+                        gpus[0],
+                        [tf.config.LogicalDeviceConfiguration(memory_limit=1024),
+                         tf.config.LogicalDeviceConfiguration(memory_limit=1024)])
+            except RuntimeError as e:
+                # Memory growth must be set before GPUs have been initialized
+                print('No GPU Error!')
+                print(e)
+
     preproc = preprocess.PreProcess()
 
     """
@@ -144,40 +180,6 @@ def main():
 
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-    num_gpus = gpus_func.get_num_gpus()
-    #print('num_gpus', num_gpus)
-
-    #if num_gpus > 0:
-    #    mixed_precision.set_global_policy("mixed_float16")
-
-    multiple_GPUs_with_virtual_devices = False #False
-
-    # Limit GPU memory usage (optional)
-    if num_gpus <= 1:
-        # one gpu 
-        gpus = tf.config.list_physical_devices('GPU')
-        print('gpus:', gpus)
-        if gpus:
-            try:
-                tf.config.set_visible_devices(gpus[0], 'GPU')
-                # Currently, memory growth needs to be the same across GPUs
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                    #tf.config.experimental.set_virtual_device_configuration(gpus[0],
-                    #    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
-                    #    )
-                logical_gpus = tf.config.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-
-                if multiple_GPUs_with_virtual_devices:
-                    tf.config.set_logical_device_configuration(
-                        gpus[0],
-                        [tf.config.LogicalDeviceConfiguration(memory_limit=1024),
-                         tf.config.LogicalDeviceConfiguration(memory_limit=1024)])
-            except RuntimeError as e:
-                # Memory growth must be set before GPUs have been initialized
-                print('No GPU Error!')
-                print(e)
 
 
     postproc = postprocess.PostProcess()

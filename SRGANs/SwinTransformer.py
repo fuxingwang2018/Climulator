@@ -1,7 +1,7 @@
-from tensorflow.keras import layers
 import tensorflow as tf
+#from tensorflow.keras import layers
 
-class SwinTransformerBlock(layers.Layer):
+class SwinTransformerBlock(tf.keras.layers.Layer):
     def __init__(self, num_heads, embed_dim, window_size, mlp_dim):
         super(SwinTransformerBlock, self).__init__()
         self.num_heads = num_heads
@@ -9,13 +9,13 @@ class SwinTransformerBlock(layers.Layer):
         self.window_size = window_size
         self.mlp_dim = mlp_dim
 
-        self.norm1 = layers.LayerNormalization(epsilon=1e-6)
-        self.attn = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim, attention_axes=(1, 2))
+        self.norm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.attn = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim, attention_axes=(1, 2))
 
-        self.norm2 = layers.LayerNormalization(epsilon=1e-6)
+        self.norm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.mlp = tf.keras.Sequential([
-            layers.Dense(mlp_dim, activation='relu'),
-            layers.Dense(embed_dim),
+            tf.keras.layers.Dense(mlp_dim, activation='relu'),
+            tf.keras.layers.Dense(embed_dim),
         ])
 
     def call(self, x):
@@ -23,13 +23,13 @@ class SwinTransformerBlock(layers.Layer):
         residual = x
         x = self.norm1(x)
         x = self.attn(x, x)
-        x = layers.Add()([residual, x])
+        x = tf.keras.layers.Add()([residual, x])
 
         # MLP with residual connection
         residual = x
         x = self.norm2(x)
         x = self.mlp(x)
-        x = layers.Add()([residual, x])
+        x = tf.keras.layers.Add()([residual, x])
 
         return x
 

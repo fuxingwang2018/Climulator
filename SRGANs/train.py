@@ -4,9 +4,9 @@ import numpy as np
 import os
 from scipy.io import loadmat, savemat
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras import layers, models, optimizers, metrics, losses
-from tensorflow.keras.callbacks import ModelCheckpoint
+#from tensorflow.keras.models import load_model
+#from tensorflow.keras import layers, models, optimizers
+#from tensorflow.keras.callbacks import ModelCheckpoint
 from SRGANs.Model_Generator import model_generator
 #from SRGANs.Model_Generator import model_generator_no_const_input
 from SRGANs.Model_Discriminator import model_discriminator
@@ -37,8 +37,8 @@ class TrainModel(object):
  
         model_name = f"model_1"
 
-        generator_optimizer = optimizers.Adam(LEARNING_RATE) #1e-4)
-        discriminator_optimizer = optimizers.Adam(LEARNING_RATE) #1e-4)
+        generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
+        discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
         #generator_optimizer = optimizers.legacy.Adam(1e-4)
         #discriminator_optimizer = optimizers.legacy.Adam(1e-4)
 
@@ -55,14 +55,15 @@ class TrainModel(object):
             monitor='val_gen_loss',  # Monitor validation generator loss
             patience=5,  # Stop training if no improvement for 5 epochs
             restore_best_weights=True,  # Restore best model weights
-            verbose=1
+            verbose=1,
+            mode="min"
         )
         #checkpoint_filepath = self.wdir + 'checkpoint_NN'
         checkpoint_filepath = self.wdir + 'checkpoint_{epoch:04d}.weights.h5'
         print ('checkpoint_filepath', checkpoint_filepath)
 
         # Create a callback that saves the model's weights
-        checkpoint = ModelCheckpoint(
+        checkpoint = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
             monitor='val_gen_loss',
@@ -81,8 +82,8 @@ class TrainModel(object):
 
             print ('file exists', checkpoint_filepath_iniepoch + 'checkpoint')
             # Load model:
-            generator = load_model(checkpoint_filepath_iniepoch + f'{model_name}_generator.h5')
-            discriminator = load_model(checkpoint_filepath_iniepoch + f'{model_name}_discriminator.h5')
+            generator = tf.keras.models.load_model(checkpoint_filepath_iniepoch + f'{model_name}_generator.h5')
+            discriminator = tf.keras.models.load_model(checkpoint_filepath_iniepoch + f'{model_name}_discriminator.h5')
             model = SRGAN(generator, discriminator)
             model.compile(generator_optimizer, discriminator_optimizer, generator_loss, discriminator_loss)
             #print ('model compile:', model.summary())
@@ -121,6 +122,8 @@ class TrainModel(object):
         # Start/resume training
         # Train the model with the new callback
         # Model weights are saved at the end of every epoch, if it's the best seen so far.
+        model.build(input_shape=(None, NX, NY, INPUT_CHANNELS))
+
         hist = model.fit(dataset_train, 
             epochs = EPOCHS, 
             callbacks = callbacks_list, 

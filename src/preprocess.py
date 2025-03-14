@@ -1,6 +1,6 @@
 
 import tensorflow as tf
-from tensorflow.keras import layers
+#from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
@@ -349,7 +349,7 @@ class PreProcess(object):
         """
 
         Pool_Size = 4 
-        max_pool_2d = layers.MaxPooling2D(pool_size = Pool_Size, padding = 'valid')
+        max_pool_2d = tf.keras.layers.MaxPooling2D(pool_size = Pool_Size, padding = 'valid')
         if var_high_res.ndim == 3:
             var_high_res_4dim = np.expand_dims(var_high_res, axis=3)
         var_low_res_gen = max_pool_2d(var_high_res_4dim)
