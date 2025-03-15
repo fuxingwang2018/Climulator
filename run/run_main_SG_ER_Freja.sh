@@ -26,11 +26,11 @@ conda activate hclimai
 
 set -exu 
 
-cd $HOME/Script/HCLIMAI/src
+cd $HOME/Script/Climulator/src
 python main.py -c $HOME/Script/HCLIMAI/config/config_main_SG_${DOMAIN}.ini 
 #python srgans_fw.py
 
-#cd $HOME/Script/HCLIMAI
+#cd $HOME/Script/Climulator
 #python -m pytest
 
 current_date_time="`date`";
