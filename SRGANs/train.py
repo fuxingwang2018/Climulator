@@ -122,7 +122,7 @@ class TrainModel(object):
         # Start/resume training
         # Train the model with the new callback
         # Model weights are saved at the end of every epoch, if it's the best seen so far.
-        model.build(input_shape=(None, NX, NY, INPUT_CHANNELS))
+        #model.build(input_shape=(None, NX, NY, INPUT_CHANNELS))
 
         hist = model.fit(dataset_train, 
             epochs = EPOCHS, 

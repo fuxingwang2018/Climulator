@@ -6,7 +6,7 @@
 #SBATCH --chdir=/ec/res4/scratch/smf/tmp/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH --gpus=1
+#SBATCH --gpus=2
 #SBATCH --qos=ng
 ###SBATCH --qos=np
 #SBATCH --mem-per-cpu=4G
@@ -35,10 +35,10 @@ echo The run starts from $current_date_time
 
 set -exu 
 
-cd $HOME/Scripts/HCLIMAI/src
+cd $HOME/Scripts/Climulator/src
 python3 main.py -c ../config/config_main_SG_${DOMAIN}.ini 
 
-#cd $HOME/Script/HCLIMAI
+#cd $HOME/Script/Climulator
 #python -m pytest
 
 current_date_time="`date`";
