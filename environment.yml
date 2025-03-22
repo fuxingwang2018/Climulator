@@ -11,3 +11,5 @@ dependencies:
   - tensorflow>=2.11.0
   - netcdf4>=1.6.2
   - pytest>=7.2.1
+  - xarray>=2024.3.0
+  - pyyamö>=6.0.2

@@ -5,7 +5,7 @@
 #SBATCH -t 40:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J SG 
+#SBATCH -J INTP_ER 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -26,9 +26,8 @@ conda activate hclimai
 
 set -exu 
 
-cd $HOME/Script/Climulator/src
-python main.py -c $HOME/Script/Climulator/config/config_main_SG_${DOMAIN}.ini 
-#python srgans_fw.py
+cd $HOME/Script/Climulator/PreProcessing
+python interpolation.py -c $HOME/Script/Climulator/config/config_interpolation_${DOMAIN}_Freja.yml 
 
 #cd $HOME/Script/Climulator
 #python -m pytest
