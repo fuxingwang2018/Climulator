@@ -1,8 +1,6 @@
 #!/bin/bash 
 #SBATCH -N 1 
-###SBATCH -t 01:00:00 
-###SBATCH -t 16:00:00 
-#SBATCH -t 40:00:00 
+#SBATCH -t 06:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
 #SBATCH -J INTP_ER 

@@ -5,7 +5,7 @@ EXP='FPS12'
 FIRST_MONTH=01
 LAST_MONTH=12
 #DOMAIN='Test_Domain' #Emilia_Romagna
-DOMAIN='Test_Domain'
+DOMAIN='ALP'
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
@@ -26,11 +26,11 @@ if [[ "$EXP" == "FPS12" ]]; then
     #lonmax='17'
     #latmin='42.75'
     #latmax='48.5'
-    freq_in='3hr' #1hr, 3hr, 6hr, fx
+    freq_in='1hr' #1hr, 3hr, 6hr, fx
     freq_out='6hr' #fx
     ## VAR_LIST=('orog' ) # orog, does not work, use sellonlatbox_const.sh
-    #VAR_LIST=('pr' ) # pr, tas
-    VAR_LIST=('mrso' 'mrsol' ) # pr, tas
+    VAR_LIST=('tas' ) # pr, tas
+    #VAR_LIST=('mrso' 'mrsol' ) # pr, tas
     #VAR_LIST=('CAPE' 'clt' 'huss' 'ps' 'uas' 'vas' ) 
     #VAR_LIST=('hfls'  'hfss'  'mrfso'  'mrso'  'mrsol'	'rlds'  'rlns'  'rsds'  'rsns')
     #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
@@ -43,9 +43,9 @@ elif [[ "$EXP" == "FPS3" ]]; then
     indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
     experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1' 
     experiment_cmorized='3km'
-    freq_in='3hr'  # '3hr' for mrsol
+    freq_in='1hr'  # '3hr' for mrsol
     freq_out='6hr'
-    VAR_LIST=('mrso')  # mrsol, mrso, hfls, tas, pr
+    VAR_LIST=('pr')  # mrsol, mrso, hfls, tas, pr
     FIRST_YEAR=2000 # 1999 available but we discard it for spinup
     LAST_YEAR=2009
     #lonmin='9'
@@ -73,6 +73,15 @@ elif [[ "$DOMAIN" == "Emilia_Romagna" ]]; then
     lonmax='19.0'
     latmin='40.0'
     latmax='49.0'
+    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'
+
+elif [[ "$DOMAIN" == "ALP" ]]; then
+
+    #ALP domain
+    lonmin='-180.0'
+    lonmax='180.0'
+    latmin='-90.0'
+    latmax='90.0'
     OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'
 fi
 

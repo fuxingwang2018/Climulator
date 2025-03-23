@@ -6,7 +6,7 @@ import sys
 import argparse
 import os
 
-def interpolate_netcdf(var, input_nc, target_nc):
+def interpolate_netcdf(variable, input_nc, target_nc):
     # Open input NetCDF file (Low resolution)
     ds_lowres = xr.open_dataset(input_nc)
     
@@ -19,18 +19,27 @@ def interpolate_netcdf(var, input_nc, target_nc):
     lon_lowres, lat_lowres   = ds_lowres.lon.values, ds_lowres.lat.values
     lon_highres, lat_highres = ds_highres.lon.values, ds_highres.lat.values
     
-    # Prepare output dataset
-    ds_interp = xr.Dataset()
+    ## Prepare output dataset
+    #ds_interp = xr.Dataset()
     print('ds_lowres.data_vars:', ds_lowres.data_vars)
    
     # Flatten the original grid
     points = np.column_stack([lon_lowres.ravel(), lat_lowres.ravel()])
+
+    # Create a new dataset based on the 3km grid
+    ds_interp = ds_highres.copy()  # Copy the original 3km dataset to retain metadata
+
+    # Copy global attributes
+    ds_interp.attrs = ds_highres.attrs
+
+    ds_interp = ds_interp.drop_vars([variable], errors='ignore')  # Remove old precipitation if exists
  
     # Interpolate each variable
-    #for var in ds_lowres.data_vars:
-    data_lowres = ds_lowres[var].values.reshape(ds_lowres[var].shape[0], -1) # Reshape for each time step
-    print('var', var, lon_lowres.shape, lat_lowres.shape, data_lowres.shape)
-    data_highres = np.array([\
+    for var in ds_lowres.data_vars:
+      if var == variable:
+        data_lowres = ds_lowres[var].values.reshape(ds_lowres[var].shape[0], -1) # Reshape for each time step
+        print('var', var, lon_lowres.shape, lat_lowres.shape, data_lowres.shape)
+        data_highres = np.array([\
             griddata(points, \
             data_lowres[t], \
             (lon_highres.ravel(), lat_highres.ravel()), \
@@ -38,47 +47,52 @@ def interpolate_netcdf(var, input_nc, target_nc):
             fill_value=np.nan)\
             .reshape(lon_highres.shape) \
             for t in range(ds_lowres[var].shape[0]) \
-    ])
+        ])
 
+        """
+        # Fill missing values using nearest neighbor interpolation
+        #for t in range(ds_lowres[var].shape[0]):
+        for t in range(10):
+            mask = np.isnan(data_highres[t])
+            if np.any(mask):
+                data_highres[t][mask] = \
+                    griddata(points, \
+                    data_lowres[t], \
+                    (lon_highres[mask], lat_highres[mask]), \
+                    method='nearest')
+        """
 
-    """
-    # Fill missing values using nearest neighbor interpolation
-    #for t in range(ds_lowres[var].shape[0]):
-    for t in range(10):
-        mask = np.isnan(data_highres[t])
-        if np.any(mask):
-            data_highres[t][mask] = \
-                griddata(points, \
-                data_lowres[t], \
-                (lon_highres[mask], lat_highres[mask]), \
-                method='nearest')
-    """
-
-    ds_interp[var] = (('time', 'lat', 'lon'), data_highres)
-    ds_interp[var].attrs = ds_lowres[var].attrs  # Preserve attributes
+        ds_interp[var] = (('time', 'lat', 'lon'), data_highres)
+        ds_interp[var].attrs = ds_highres[var].attrs  # Preserve attributes
     
-    # Copy global attributes
-    ds_interp.attrs = ds_lowres.attrs
+    ## Assign interpolated precipitation
+    #ds_interp[var] = (('time', 'y', 'x'), data_highres)
     
     return ds_interp
 
 
-def calculate_difference(interpolated_nc, reference_nc):
+def calculate_difference(variable, interpolated_nc, reference_nc):
     # Open datasets
     ds_interp = xr.open_dataset(interpolated_nc)
     ds_ref = xr.open_dataset(reference_nc)
-    
+   
     # Prepare output dataset
-    ds_diff = xr.Dataset()
+    #ds_diff = xr.Dataset()
+
+    # Create a new dataset based on the 3km grid
+    ds_diff = ds_ref.copy()  # Copy the original 3km dataset to retain metadata
+
+    # Copy global attributes
+    ds_diff.attrs = ds_ref.attrs
     
     # Calculate difference for each variable
     for var in ds_interp.data_vars:
-        if var in ds_ref:
-            ds_diff[var] = ds_interp[var] - ds_ref[var]
-            ds_diff[var].attrs = ds_interp[var].attrs  # Preserve attributes
-    
-    # Copy global attributes
-    ds_diff.attrs = ds_interp.attrs
+        #if var in ds_ref:
+        if var == variable:
+            ds_diff = ds_diff.drop_vars([var], errors='ignore')  # Remove old precipitation if exists
+            print('var', var) 
+            ds_diff[var] = (('time', 'lat', 'lon'), np.array(ds_interp[var].values - ds_ref[var].values))
+            ds_diff[var].attrs = ds_ref[var].attrs  # Preserve attributes
     
     return ds_diff
 
@@ -101,11 +115,10 @@ def get_config(config_path):
 
     # Resolve environment variables or placeholders like ${base_dir}
     for key, value in config["data_path"].items():
-        #print('key, value', key, value)
-        #print('config base_dir',  config["base_dir"])
-        config["data_path"][key] = value.replace("${base_dir}", config["base_dir"]).replace("${variable}", config["variable"])
-        #config["data_path"][key] = value.replace("${variable}", config["variable"])
-        #print('config data_path', config["data_path"][key])
+        config["data_path"][key] = \
+            value.replace("${base_dir}", config["base_dir"]).\
+            replace("${variable}", config["variable"]).\
+            replace("${period}", config["period"])
 
     return config
 
@@ -131,7 +144,7 @@ def main():
     save_netcdf(ds_interp, output_interp_nc)
     print(f"Interpolated data saved to {output_interp_nc}")
 
-    ds_diff = calculate_difference(output_interp_nc, target_nc)
+    ds_diff = calculate_difference(config["variable"], output_interp_nc, target_nc)
     print('calculation of difference completed!')
     save_netcdf(ds_diff, output_diff_nc)
     print(f"Difference data saved to {output_diff_nc}")

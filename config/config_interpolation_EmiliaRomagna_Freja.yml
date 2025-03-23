@@ -1,12 +1,16 @@
-base_dir: "/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/cropped/"
+base_dir: "/nobackup/rossby26/users/sm_fuxwa/AI/"
 
-variable: "pr"
+#variable: "pr"
+#period: "200001010300-200912312100"
+
+variable: "tas"
+period: "200001010000-200912311800"
 
 data_path:
-  input_lowres_nc:  "${base_dir}/12km/6hr/${variable}/${variable}_12km_6hr_200001010300-200912312100.nc"
-  input_highres_nc: "${base_dir}/3km/6hr/${variable}/${variable}_3km_6hr_200001010300-200912312100.nc"
-  output_interp_nc: "${base_dir}/3km_interp/6hr/${variable}/${variable}_3km_interp_6hr_200001010300-200912312100.nc"
-  output_diff_nc:   "${base_dir}/3km_interp/6hr/${variable}/${variable}_3km_difference_6hr_200001010300-200912312100.nc"
+  input_lowres_nc:  "${base_dir}/ALP/original/12km/6hr/${variable}/${variable}_12km_6hr_${period}.nc"
+  input_highres_nc: "${base_dir}/Emilia_Romagna/cropped/3km/6hr/${variable}/${variable}_3km_6hr_${period}.nc"
+  output_interp_nc: "${base_dir}/Emilia_Romagna/cropped/3km_interp/6hr/${variable}/${variable}_3km_interpolated_6hr_${period}.nc"
+  output_diff_nc:   "${base_dir}/Emilia_Romagna/cropped/3km_interp/6hr/${variable}/${variable}_3km_difference_6hr_${period}.nc"
 
 
 
