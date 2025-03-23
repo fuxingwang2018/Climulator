@@ -1,21 +1,17 @@
 #!/bin/bash 
-###SBATCH --partition=standard-g  # Change this based on LUMI-G configuration
 #SBATCH --partition=small-g  # Change this based on LUMI-G configuration
 ###SBATCH --partition=dev-g  # Change this based on LUMI-G configuration
-###SBATCH --nodes=2
-#SBATCH --time=00:30:00
+#SBATCH --gpus=6
+#SBATCH --time=01:00:00  
 #SBATCH -A project_465000527
 #SBATCH --chdir=/users/wangfuxi/log
 #SBATCH --error=%x-%j.error
 #SBATCH --output=%x-%j.out
-#SBATCH -J SGERsma 
-#SBATCH --gpus=4
-###SBATCH --ntasks-per-node=8     # 8 MPI ranks per node, 16 total (2x8)
-###SBATCH --gpus-per-node=8      # Allocate one gpu per MPI rank
+#SBATCH -J SGTDsma 
 #SBATCH --mem-per-gpu=100G
 
-DOMAIN='EmiliaRomagna'
-#DOMAIN='TestDomain'
+#DOMAIN='EmiliaRomagna'
+DOMAIN='TestDomain'
 echo 'domain is' ${DOMAIN}
 
 #

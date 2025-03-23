@@ -3,21 +3,16 @@
 #SBATCH --partition=small-g  # Change this based on LUMI-G configuration
 ###SBATCH --partition=dev-g  # Change this based on LUMI-G configuration
 ###SBATCH --nodes=2
-#SBATCH --time=00:30:00
+#SBATCH --time=00:30:00  # 10 minutes
 #SBATCH -A project_465000527
 #SBATCH --chdir=/users/wangfuxi/log
 #SBATCH --error=%x-%j.error
 #SBATCH --output=%x-%j.out
-#SBATCH -J SGERsma 
-#SBATCH --gpus=4
+#SBATCH -J TestGPUs 
+#SBATCH --gpus=2
 ###SBATCH --ntasks-per-node=8     # 8 MPI ranks per node, 16 total (2x8)
-###SBATCH --gpus-per-node=8      # Allocate one gpu per MPI rank
+###SBATCH --gpus-per-node=2      # Allocate one gpu per MPI rank
 #SBATCH --mem-per-gpu=100G
-
-DOMAIN='EmiliaRomagna'
-#DOMAIN='TestDomain'
-echo 'domain is' ${DOMAIN}
-
 #
 #module load LUMI/24.03  # Load the correct LUMI module
 source $HOME/venvs/Climulator/bin/activate
@@ -33,8 +28,8 @@ echo The run starts from $current_date_time
 
 set -exu 
 
-cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/config_main_SG_${DOMAIN}_LUMI.ini 
+cd $HOME/Scripts/Climulator/tests
+python3 test_gpus_LUMI.py
 
 current_date_time="`date`";
 echo The run ends at $current_date_time

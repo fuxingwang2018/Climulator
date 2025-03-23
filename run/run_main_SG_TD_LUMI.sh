@@ -1,21 +1,30 @@
 #!/bin/bash 
-###SBATCH --partition=standard-g  # Change this based on LUMI-G configuration
-#SBATCH --partition=small-g  # Change this based on LUMI-G configuration
+#SBATCH --partition=standard-g  # Change this based on LUMI-G configuration
 ###SBATCH --partition=dev-g  # Change this based on LUMI-G configuration
-#SBATCH --nodes=1
-#SBATCH --gpus=1
-#SBATCH --time=01:00:00  # 10 minutes
+###SBATCH --nodes=1
+#SBATCH --gpus=4
+#SBATCH --time=01:00:00  
 #SBATCH -A project_465000527
 #SBATCH --chdir=/users/wangfuxi/log
 #SBATCH --error=%x-%j.error
 #SBATCH --output=%x-%j.out
-#SBATCH -J SG 
-###SBATCH --ntasks-per-node=8     # 8 MPI ranks per node, 16 total (2x8)
-###SBATCH --gpus-per-node=8       # Allocate one gpu per MPI rank
+#SBATCH -J SGTDstd 
+###SBATCH --ntasks-per-node=1     # 8 MPI ranks per node, 16 total (2x8)
+###SBATCH --gpus-per-node=4       # Allocate one gpu per MPI rank
+#SBATCH --mem-per-gpu=50G
+###SBATCH --mem=400G
 
 #DOMAIN='EmiliaRomagna'
 DOMAIN='TestDomain'
 echo 'domain is' ${DOMAIN}
+
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+#export LD_PRELOAD=""
+#export TF_CUDNN_WORKSPACE_LIMIT_IN_MB=81920
+#export TF_FORCE_GPU_ALLOW_GROWTH=true
+#export TF_ROCM_WORKSPACE_LIMIT_IN_MB=81920
+#export OMP_NUM_THREADS=8
+#export MPICH_GPU_SUPPORT_ENABLED=1
 
 #
 #module load LUMI/24.03  # Load the correct LUMI module
@@ -24,8 +33,8 @@ source $HOME/venvs/Climulator/bin/activate
 module load cray-python/3.10.10
 
 module load Local-CSC
-#module load tensorflow/2.9, 2.10, 2.11, 2.12
-module load tensorflow/2.16
+#available version tensorflow/2.8, 2.9, 2.10, 2.11, 2.12. 2.16, but tensorflow needs to be consistent with keras which is keras==2.12.0
+module load tensorflow/2.12
 
 current_date_time="`date`";
 echo The run starts from $current_date_time

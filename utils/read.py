@@ -57,6 +57,7 @@ class Read(object):
                     var_data_ifile = np.array(data.variables[ivar])
                     var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
                 icount += 1
+                data.close()
 
             var_dict[ivar] = var_data #np.array(data.variables[var])
             var_list_nc.append(ivar)

@@ -9,9 +9,14 @@ from SRGANs import feature_selection, train
 import numpy as np
 import glob
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+import gc
+
 
 def main():
+
+    #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    #tf.keras.backend.clear_session()
+    #gc.collect()
 
     # Get configuration 
     args = get_configuration.get_args()
@@ -107,39 +112,17 @@ def main():
 
 
     num_gpus = gpus_func.get_num_gpus()
-    #print('num_gpus', num_gpus)
+    assert BATCH_SIZE % num_gpus == 0
+
+    print('num_gpus, BATCH_SIZE', num_gpus, BATCH_SIZE)
 
     #if num_gpus > 0:
-    #    mixed_precision.set_global_policy("mixed_float16")
+    #    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    gpus_func.set_gpus(num_gpus)
 
     multiple_GPUs_with_virtual_devices = False #False
 
-    # Limit GPU memory usage (optional)
-    if num_gpus <= 1:
-        # one gpu 
-        gpus = tf.config.list_physical_devices('GPU')
-        print('gpus:', gpus)
-        if gpus:
-            try:
-                tf.config.set_visible_devices(gpus[0], 'GPU')
-                # Currently, memory growth needs to be the same across GPUs
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                    #tf.config.experimental.set_virtual_device_configuration(gpus[0],
-                    #    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
-                    #    )
-                logical_gpus = tf.config.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-
-                if multiple_GPUs_with_virtual_devices:
-                    tf.config.set_logical_device_configuration(
-                        gpus[0],
-                        [tf.config.LogicalDeviceConfiguration(memory_limit=1024),
-                         tf.config.LogicalDeviceConfiguration(memory_limit=1024)])
-            except RuntimeError as e:
-                # Memory growth must be set before GPUs have been initialized
-                print('No GPU Error!')
-                print(e)
 
     preproc = preprocess.PreProcess()
 
@@ -178,7 +161,6 @@ def main():
     for key, values in var_low_res_filtered_dict.items():
         print('shape var_low_res_filtered:', values.shape)
 
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 
@@ -194,7 +176,20 @@ def main():
         preproc.split_data(var_low_res_filtered_dict, var_const_high_res_scaled_dict, var_high_res_scaled_dict, \
         BATCH_SIZE, TEST_SIZE, RANDOM_STATE, \
         varname_predictand_high_res[0], downscale_mode)
-    
+
+    """
+    for batch in dataset_train.take(1):
+      if isinstance(batch, tuple):
+        for i, element in enumerate(batch):
+            print(f'batch[{i}] type:', type(element))
+            if hasattr(element, 'shape'):
+                print(f'batch[{i}].shape:', element.shape)
+            else:
+                print(f'batch[{i}] is not a tensor')
+      else:
+        print("batch is not a tuple")
+    """
+
     #feature_selection.stepwise_algorithm(X_train, X_test, y_train, y_test)
     print('X_test, const_test, y_test:', np.shape(X_test), np.shape(const_test), np.shape(y_test))
     postproc.plot_result(y_test, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
@@ -213,6 +208,7 @@ def main():
 
 
     if num_gpus <= 1:
+
         # training
         trainmodel = train.TrainModel(wdir)
         generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
@@ -222,23 +218,10 @@ def main():
 
     elif num_gpus > 1:
 
-        gpus = tf.config.list_physical_devices('GPU')
-        if gpus:
-            try:
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                    tf.config.experimental.set_virtual_device_configuration(gpus[0],
-                        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]  # Set memory limit in MB
-                        )
-
-                print("Enabled GPU memory growth")
-            except RuntimeError as e:
-                print(e)
-
-        # Enable multi-GPU strategy
-        tf.debugging.set_log_device_placement(True)
+        #tf.debugging.set_log_device_placement(True)
         strategy = gpus_func.get_strategy()
 
+        #strategy.reduce(tf.distribute.ReduceOp.SUM, tensor, axis=None)
         print(f"Number of GPUs Available: {strategy.num_replicas_in_sync}")
 
         with strategy.scope():
@@ -248,6 +231,14 @@ def main():
                 SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                 METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                 dataset_train, dataset_valid)
+    """
+
+    trainmodel = train.TrainModel(wdir)
+    generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS, 
+        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+        METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
+        dataset_train, dataset_valid)
+    """
 
     y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
 

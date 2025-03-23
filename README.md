@@ -29,5 +29,6 @@
  cd $HOME/venvs
  python3 -m venv --system-site-packages Climulator
  source $HOME/venvs/Climulator/bin/activate
- pip install mlxtend  keras
+ pip install mlxtend  
+ pip install keras==2.12.0  #tensorflow needs to be 2.12 to be consistent with keras
 ```

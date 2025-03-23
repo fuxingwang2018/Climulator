@@ -39,8 +39,8 @@ class TrainModel(object):
 
         generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
         discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
-        #generator_optimizer = optimizers.legacy.Adam(1e-4)
-        #discriminator_optimizer = optimizers.legacy.Adam(1e-4)
+        #generator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) # (1e-4)
+        #discriminator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) #(1e-4)
 
         #subsampling_lr = 4
         #n_res_block = 8
@@ -77,6 +77,7 @@ class TrainModel(object):
             callbacks_list = [checkpoint, early_stopping]
 
         checkpoint_filepath_iniepoch = os.path.dirname(os.path.dirname(self.wdir)) + '/EPOCH' + str(EPOCH_INIT) + '/'
+
         # Load checkpoint:
         if os.path.isfile( checkpoint_filepath_iniepoch + '/checkpoint'):
 
@@ -122,7 +123,7 @@ class TrainModel(object):
         # Start/resume training
         # Train the model with the new callback
         # Model weights are saved at the end of every epoch, if it's the best seen so far.
-        #model.build(input_shape=(None, NX, NY, INPUT_CHANNELS))
+        #model.build(input_shape=(int(BATCH_SIZE / max(NUM_GPUS, !)), NX, NY, INPUT_CHANNELS))
 
         hist = model.fit(dataset_train, 
             epochs = EPOCHS, 
