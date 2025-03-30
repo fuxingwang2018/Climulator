@@ -72,7 +72,7 @@ def main():
     var_lr_scaled = preproc.scale_var(var_low_res)
     var_hr_scaled = preproc.scale_var(var_high_res)
     var_lr_filtered = preproc.filter_var(var_lr_scaled, var_hr_scaled)
-    dataset_train, dataset_valid, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
+    dataset_train, dataset_test, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
     '''
     # reading data
     readin = read.Read('netcdf')
@@ -121,7 +121,7 @@ def main():
         var_high_res_scaled_dict, path_figure)
 
     #preproc.split_data(var_low_res_filtered_dict, var_high_res_scaled_dict, \
-    dataset_train, dataset_valid, X_train, X_test, y_train, y_test = \
+    dataset_train, dataset_test, X_train, X_test, y_train, y_test = \
         preproc.split_data(var_low_res_filtered_dict, var_high_res_adjusted_dict, \
         BATCH_SIZE, TEST_SIZE, RANDOM_STATE, \
         varname_predictand_high_res[0], downscale_mode)

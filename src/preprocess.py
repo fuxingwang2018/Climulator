@@ -366,8 +366,26 @@ class PreProcess(object):
 
         return var_low_res_gen
 
+    def augment(self, data_x_const, data_y):
 
-    def split_data(self, var_lr, var_const_hr, var_hr, batch_size, TEST_SIZE, RANDOM_STATE, variable, downscale_mode):
+        # Function to apply the augmentation to low-resolution and high-resolution images
+        #Apply Data Augmentation
+        data_augmentation = tf.keras.Sequential([
+            tf.keras.layers.RandomFlip("horizontal"),  # Random horizontal flip
+            tf.keras.layers.RandomRotation(0.3),      # Small random rotation
+            tf.keras.layers.RandomZoom(0.3),          # Random zoom
+            tf.keras.layers.RandomContrast(0.3),          # Random contrast
+        ])
+
+        data_x, data_const = data_x_const
+        data_x = data_augmentation(data_x)
+        #data_const = data_augmentation(data_const)
+        data_y = data_augmentation(data_y)
+        return (data_x, data_const), data_y
+
+
+    def split_data(self, var_lr, var_const_hr, var_hr, batch_size, TEST_SIZE, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
+            variable, downscale_mode):
 
         """
         Split dataset into subsets 
@@ -457,26 +475,46 @@ class PreProcess(object):
         print('Testing dataset shape:', X_test.shape, const_test.shape, y_test.shape)
 
         #if var_const_hr:
-        dataset_train = tf.data.Dataset.from_tensor_slices(((X_train, const_train), y_train))
-        dataset_valid = tf.data.Dataset.from_tensor_slices(((X_test, const_test), y_test))
+        dataset_train_all = tf.data.Dataset.from_tensor_slices(((X_train, const_train), y_train))
+        dataset_test = tf.data.Dataset.from_tensor_slices(((X_test, const_test), y_test))
         #else: 
-        #    dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-        #    dataset_valid = tf.data.Dataset.from_tensor_slices((X_test, y_test))
-        print('dataset_train 0 shape:', dataset_train.element_spec)
-        print('dataset_valid 0 shape:', dataset_valid.element_spec)
+        #    dataset_train_all = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+        #    dataset_test = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+        print('dataset_train_all 0 shape:', dataset_train_all.element_spec)
+        print('dataset_test 0 shape:', dataset_test.element_spec)
+
+
+        if DATA_AUGMENTATION:
+            # Apply the augmentations to the dataset before batching
+            dataset_train_all = dataset_train_all.map(self.augment, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset_test = dataset_test.map(self.augment, num_parallel_calls=tf.data.AUTOTUNE)
+            #dataset_train_all = dataset_train_all.map(lambda x: self.augment(x), num_parallel_calls=tf.data.AUTOTUNE)
+            #dataset_test = dataset_test.map(lambda x: self.augment(x), num_parallel_calls=tf.data.AUTOTUNE)
+
+        # Define the validation split fraction
+        val_size = int(len(dataset_train_all) * VALIDATION_SPLIT)
+        print('val_size', val_size)
+
+        # Split dataset into training and validation
+        dataset_train = dataset_train_all.skip(val_size)
+        dataset_valid = dataset_train_all.take(val_size)
+
+
+        print('dataset_train_all type:', type(dataset_train_all))
+        print('dataset_test type:', type(dataset_test))
+        print('dataset_valid type:', type(dataset_valid))
+        print('dataset_train_all shape:', dataset_train_all.element_spec)
+        print('dataset_test shape:', dataset_test.element_spec)
+        print('dataset_valid shape:', dataset_valid.element_spec)
+        print('dataset_train_all len:', np.shape(dataset_train_all.element_spec[0]), np.shape(dataset_train_all.element_spec[0])[0], np.shape(dataset_train_all.element_spec[1]))
+        print('dataset_test len:', np.shape(dataset_test.element_spec[0]), np.shape(dataset_test.element_spec[1])[0], np.shape(dataset_test.element_spec[1]))
+        print('dataset_valid len:', np.shape(dataset_valid.element_spec[0]), np.shape(dataset_valid.element_spec[1])[0], np.shape(dataset_valid.element_spec[1]))
 
         dataset_train = dataset_train.batch(batch_size, drop_remainder=True)
+        dataset_test = dataset_test.batch(batch_size, drop_remainder=True)
         dataset_valid = dataset_valid.batch(batch_size, drop_remainder=True)
 
-        print('dataset_train type:', type(dataset_train))
-        print('dataset_valid type:', type(dataset_valid))
-        print('dataset_train shape:', dataset_train.element_spec)
-        print('dataset_valid shape:', dataset_valid.element_spec)
-        print('dataset_train len:', np.shape(dataset_train.element_spec[0]), np.shape(dataset_train.element_spec[0])[0], np.shape(dataset_train.element_spec[1]))
-        print('dataset_valid len:', np.shape(dataset_valid.element_spec[0]), np.shape(dataset_train.element_spec[1])[0], np.shape(dataset_valid.element_spec[1]))
-
         """
-
         shape = X_train.shape
         X_trainr = X_train.reshape((shape[0], -1))
         shape = X_test.shape
@@ -496,8 +534,9 @@ class PreProcess(object):
         print('Testing dataset shape:', X_testr.shape, y_testr.shape)
         """
 
-        return dataset_train, dataset_valid, X_train, X_test, const_train, const_test, y_train, y_test
-        #return dataset_train, dataset_valid, X_trainr, X_testr, y_trainr, y_testr
+        return dataset_train, dataset_valid, dataset_test, X_train, X_test, const_train, const_test, y_train, y_test
+        #return dataset_train, dataset_test, X_trainr, X_testr, y_trainr, y_testr
+
 
 
 

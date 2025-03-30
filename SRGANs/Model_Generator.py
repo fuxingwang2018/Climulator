@@ -143,29 +143,21 @@ def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_
 
     conv_1 = tf.keras.layers.Conv2D(filters=64, kernel_size=7, strides=1, activation='linear', padding='same')(inputs_low_res)
 
-    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-        conv_1 = tf.keras.layers.Dropout(dropout_rate)(conv_1)  # Add Dropout, increase 0.3 if overfitting persists.
-
     prelu_1 = tf.keras.layers.PReLU()(conv_1) #layers.PReLU(alpha_initializer='zeros', alpha_regularizer=None, alpha_constraint=None, shared_axes=[2,3])(conv_1)
     
     res_block = prelu_1
 
     for index in range(n_res_block):
 
-        #res_block = res_block_gen(res_block, 3, 64, 1)
         res_block = res_block_gen(res_block, 3, 64, 1, dropout_rate)
 
     conv_2 = tf.keras.layers.Conv2D(filters = 64, kernel_size = 3, strides = 1, padding = "same")(res_block) 
-    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-        conv_2 = tf.keras.layers.Dropout(dropout_rate)(conv_2)  # Add Dropout, increase 0.3 if overfitting persists.
-
 
     if method == 'ViT':
         # Vision Transformer Block
         vit_output = ViT.vit_block_v1(conv_2, num_patches = int(nz / subsampling) * int(nx / subsampling), projection_dim=64, transformer_layers=2)
         ###vit_output = ViT.vit_block_v3(combined_input, patch_size = subsampling, projection_dim=64)
         conv_2 = vit_output
-
 
     batch_1 = tf.keras.layers.BatchNormalization(momentum = 0.5)(conv_2) #axis=1, 
     add_1 = tf.keras.layers.Add()([prelu_1, batch_1])
@@ -178,8 +170,6 @@ def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_
 
     combined_input = tf.keras.layers.Concatenate()([up_sampling, inputs_high_res])
     combined_input = tf.keras.layers.Conv2D(filters=64, kernel_size = 3, strides = 1, padding='same', activation='relu')(combined_input)
-    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-        combined_input = tf.keras.layers.Dropout(dropout_rate)(combined_input)  # Add Dropout, increase 0.3 if overfitting persists.
 
     # Vision Transformer Block
     #vit_output = ViT.vit_block_v1(combined_input, num_patches = int(nz) * int(nx), projection_dim=64, transformer_layers=2)
@@ -211,10 +201,10 @@ def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_
         # Reshape the final output to match input size
         combined_input = layers.Resizing(nz, nx)(combined_input)
     """
+    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+        combined_input = tf.keras.layers.Dropout(dropout_rate)(combined_input)  
 
     conv_3 = tf.keras.layers.Conv2D(filters = output_channels, kernel_size = 3, strides = 1, padding = "same")(combined_input)
-    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-    #    conv_3 = tf.keras.layers.Dropout(dropout_rate)(conv_3)  # Add Dropout, increase 0.3 if overfitting persists.
 
     outputs = conv_3
 
@@ -230,19 +220,15 @@ def res_block_gen(model, kernal_size, filters, strides, dropout_rate):
     gen = model
     
     model = tf.keras.layers.Conv2D(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
-
-    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-    #    model = tf.keras.layers.Dropout(dropout_rate)(model)  # Add Dropout, increase 0.3 if overfitting persists.
-
     model = tf.keras.layers.BatchNormalization(momentum = 0.5)(model)
     # Using Parametric ReLU
     model = tf.keras.layers.PReLU()(model) #layers.PReLU(alpha_initializer='zeros', alpha_regularizer=None, alpha_constraint=None, shared_axes=[2,3])(model)
     model = tf.keras.layers.Conv2D(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
 
-    #if dropout_rate >= 0.0 and dropout_rate <= 1.0:
-    #    model = tf.keras.layers.Dropout(dropout_rate)(model)  # Add Dropout, increase 0.3 if overfitting persists.
-
     model = tf.keras.layers.BatchNormalization(momentum = 0.5)(model)
+
+    if dropout_rate >= 0.0 and dropout_rate <= 1.0:
+        model = tf.keras.layers.Dropout(dropout_rate)(model)
         
     model = tf.keras.layers.Add()([gen, model])
     

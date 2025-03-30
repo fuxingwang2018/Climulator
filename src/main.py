@@ -30,8 +30,9 @@ def main():
     EPOCHS = cdict['stats_conf']['SRGAN']['EPOCHS']
     EPOCH_INIT = cdict['stats_conf']['SRGAN']['EPOCH_INIT']
     TEST_SIZE = cdict['stats_conf']['SRGAN']['TEST_SIZE']
+    VALIDATION_SPLIT = cdict['stats_conf']['SRGAN']['VALIDATION_SPLIT']
     RANDOM_STATE = cdict['stats_conf']['SRGAN']['RANDOM_STATE']
-    print('SRGAN PARAMETERS:', BATCH_SIZE, EPOCHS, EPOCH_INIT, TEST_SIZE, RANDOM_STATE)
+    print('SRGAN PARAMETERS:', BATCH_SIZE, EPOCHS, EPOCH_INIT, TEST_SIZE, VALIDATION_SPLIT, RANDOM_STATE)
 
     SUBSAMPLING_LR = cdict['stats_conf']['TRAINING']['SUBSAMPLING_LR']
     N_RES_BLOCK = cdict['stats_conf']['TRAINING']['N_RES_BLOCK']
@@ -42,6 +43,7 @@ def main():
     LEARNING_RATE = cdict['stats_conf']['TRAINING']['LEARNING_RATE']
     DROPOUT_RATE = cdict['stats_conf']['TRAINING']['DROPOUT_RATE']
     EARLY_STOP = cdict['stats_conf']['TRAINING']['EARLY_STOP']
+    DATA_AUGMENTATION = cdict['stats_conf']['TRAINING']['DATA_AUGMENTATION']
 
     experiment_name = cdict['experiment_name']
     path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']
@@ -88,7 +90,7 @@ def main():
     var_lr_scaled = preproc.scale_var(var_low_res)
     var_hr_scaled = preproc.scale_var(var_high_res)
     var_lr_filtered = preproc.filter_var(var_lr_scaled, var_hr_scaled)
-    dataset_train, dataset_valid, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
+    dataset_train, dataset_test, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
     '''
     # reading data
     readin = read.Read('netcdf')
@@ -162,8 +164,6 @@ def main():
         print('shape var_low_res_filtered:', values.shape)
 
 
-
-
     postproc = postprocess.PostProcess()
     postproc.plot_input_data(\
         var_low_res_filtered_dict, \
@@ -172,9 +172,9 @@ def main():
         #var_high_res_scaled_dict[varname_predictand_high_res[0]], path_figure)
 
     #preproc.split_data(var_low_res_filtered_dict, var_high_res_scaled_dict, \
-    dataset_train, dataset_valid, X_train, X_test, const_train, const_test, y_train, y_test = \
+    dataset_train, dataset_valid, dataset_test, X_train, X_test, const_train, const_test, y_train, y_test = \
         preproc.split_data(var_low_res_filtered_dict, var_const_high_res_scaled_dict, var_high_res_scaled_dict, \
-        BATCH_SIZE, TEST_SIZE, RANDOM_STATE, \
+        BATCH_SIZE, TEST_SIZE, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
         varname_predictand_high_res[0], downscale_mode)
 
     """
@@ -194,18 +194,7 @@ def main():
     print('X_test, const_test, y_test:', np.shape(X_test), np.shape(const_test), np.shape(y_test))
     postproc.plot_result(y_test, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
 
-    """
-    #Apply Data Augmentation
-    data_augmentation = tf.keras.Sequential([
-        tf.keras.layers.RandomFlip("horizontal"),  # Random horizontal flip
-        tf.keras.layers.RandomRotation(0.1),      # Small random rotation
-        tf.keras.layers.RandomZoom(0.1),          # Random zoom
-    ])
-    # Apply augmentation to LR and HR images
-    dataset_train = data_augmentation(dataset_train)
-    dataset_valid = data_augmentation(dataset_valid)
-    """
-
+    
 
     if num_gpus <= 1:
 

@@ -1,8 +1,8 @@
 #!/bin/bash 
 #SBATCH --partition=small-g  # Change this based on LUMI-G configuration
 ###SBATCH --partition=dev-g  # Change this based on LUMI-G configuration
-#SBATCH --gpus=6
-#SBATCH --time=01:00:00  
+#SBATCH --gpus=2
+#SBATCH --time=02:00:00  
 #SBATCH -A project_465000527
 #SBATCH --chdir=/users/wangfuxi/log
 #SBATCH --error=%x-%j.error
@@ -12,6 +12,7 @@
 
 #DOMAIN='EmiliaRomagna'
 DOMAIN='TestDomain'
+VARIABLE='tas'
 echo 'domain is' ${DOMAIN}
 
 #
@@ -30,7 +31,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/config_main_SG_${DOMAIN}_LUMI.ini 
+python3 main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_LUMI.ini 
 
 current_date_time="`date`";
 echo The run ends at $current_date_time
