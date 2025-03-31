@@ -1,0 +1,37 @@
+[ECMWF-INFO -sbatch] - -------------------------------------------------------------------------------------
+[ECMWF-INFO -sbatch] -  This is the ECMWF jobfilter
+[ECMWF-INFO -sbatch] -  +++ Please report issues using the Support portal +++
+[ECMWF-INFO -sbatch] -  +++ https://support.ecmwf.int                     +++
+[ECMWF-INFO -sbatch] -  /usr/local/bin/ecsbatch: size: 52065, mtime: Wed Feb 12 19:10:58 2025
+[ECMWF-INFO -sbatch] - -------------------------------------------------------------------------------------
+[ECMWF-INFO -sbatch] - Time at submit: Mon Mar 31 14:53:49 2025 (1743432829.8564956) on ac6-101.bullx:/etc/ecmwf/nfs/dh1_home_b/smf/Scripts/Climulator/run
+[ECMWF-INFO -sbatch] - --- SLURM VARIABLES ---
+[ECMWF-INFO -sbatch] - EC_CLUSTER=ac
+[ECMWF-INFO -sbatch] - SLURM_EXPORT_ENV=ALL
+[ECMWF-INFO -sbatch] - SBATCH_EXPORT=NONE
+[ECMWF-INFO -sbatch] - -----------------------
+[ECMWF-INFO -sbatch] - jobscript: /etc/ecmwf/nfs/dh1_home_b/smf/Scripts/Climulator/run/run_main_SG_ER_tas_atos.sh
+[ECMWF-INFO -sbatch] - --- SCRIPT OPTIONS ---
+[ECMWF-INFO -sbatch] - #SBATCH -J SGERtas
+[ECMWF-INFO -sbatch] - #SBATCH --chdir=/log/smf/log/log_ml
+[ECMWF-INFO -sbatch] - #SBATCH --error=%x-%j.error
+[ECMWF-INFO -sbatch] - #SBATCH --output=%x-%j.out
+[ECMWF-INFO -sbatch] - #SBATCH --gpus=4
+[ECMWF-INFO -sbatch] - #SBATCH --qos=ng
+[ECMWF-INFO -sbatch] - #SBATCH --mem-per-gpu=100G
+[ECMWF-INFO -sbatch] - -----------------------
+[ECMWF-INFO -sbatch] - --- POST-PROCESSED OPTIONS ---
+[ECMWF-INFO -sbatch] - ARG --positional=['run_main_SG_ER_tas_atos.sh']
+[ECMWF-INFO -sbatch] - ARG --chdir=/log/smf/log/log_ml
+[ECMWF-INFO -sbatch] - ARG --error=%x-%j.error
+[ECMWF-INFO -sbatch] - ARG --job_name=SGERtas
+[ECMWF-INFO -sbatch] - ARG --output=%x-%j.out
+[ECMWF-INFO -sbatch] - ARG --qos=ng
+[ECMWF-INFO -sbatch] - ARG --gpus=4
+[ECMWF-INFO -sbatch] - ARG --mem_per_gpu=100G
+[ECMWF-INFO -sbatch] - ------------------------------
+[ECMWF-INFO -sbatch] - jobtag: smf-SGERtas-1x2-/etc/ecmwf/nfs/dh1_home_b/smf/Scripts/Climulator/run/SGERtas-_JOBID_.out
+[ECMWF-INFO -sbatch] - ['/usr/bin/sbatch', '--chdir=/log/smf/log/log_ml', '--error=%x-%j.error', '--job-name=SGERtas', '--output=%x-%j.out', '--qos=ng', '--gpus=4', '--mem-per-gpu=100G', '--time=1-00:00:00', '/etc/ecmwf/nfs/dh1_home_b/smf/Scripts/Climulator/run/run_main_SG_ER_tas_atos.sh']
+[ECMWF-INFO -sbatch] - sbatch executed on ac
+[ECMWF-INFO -sbatch] - Job queued on ac using method local
+[ECMWF-INFO -sbatch] - Submitted batch job 36395237

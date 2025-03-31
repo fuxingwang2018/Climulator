@@ -37,8 +37,16 @@ class TrainModel(object):
  
         model_name = f"model_1"
 
-        generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
-        discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE) #1e-4)
+        """
+        lr_schedule_gen = tf.keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=LEARNING_RATE['GENERATOR'], decay_steps=10000, decay_rate=0.9
+            )
+        lr_schedule_dis = tf.keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=LEARNING_RATE['DISCRIMINATOR'], decay_steps=10000, decay_rate=0.9
+            )
+        """
+        generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['GENERATOR']) #1e-4)
+        discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['DISCRIMINATOR']) #1e-4)
         #generator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) # (1e-4)
         #discriminator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) #(1e-4)
 

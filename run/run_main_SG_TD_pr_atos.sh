@@ -1,23 +1,24 @@
 #!/bin/bash 
-###SBATCH -N 1 
+###SBATCH -N 2
 ###SBATCH -t 01:00:00 
 ###SBATCH -t 3:00:00 
-#SBATCH -J SG _mrosl
+#SBATCH -J SGTDpr 
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH --gpus=1
 #SBATCH --qos=ng
-###SBATCH --qos=nf
-#SBATCH --mem-per-cpu=2G
+###SBATCH --qos=np
+#SBATCH --mem-per-cpu=4G
+###SBATCH --ntasks=8
+###SBATCH --cpus-per-task=8
 #SBATCH --ntasks=8
 #SBATCH --cpus-per-task=8
 
-DOMAIN='EmiliaRomagna'
-#DOMAIN='TestDomain'
-#export TF_GPU_ALLOCATOR=cuda_malloc_async
+#DOMAIN='EmiliaRomagna'
+DOMAIN='TestDomain'
+VARIABLE='pr'
 #export CUDA_VISIBLE_DEVICES=1 
-export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 echo 'domain is' ${DOMAIN}
 #ecinteractive -g
@@ -29,16 +30,12 @@ source /perm/smf/venvs/climulator2/bin/activate
 current_date_time="`date`";
 echo The run starts from $current_date_time
 
-#source ~sm_fuxwa/anaconda3/bin/activate
-#source /nobackup/rossby24/users/sm_fuxwa/conda/miniconda3/bin/activate
-#conda activate hclimai
-
 set -exu 
 
-cd $HOME/Scripts/HCLIMAI/src
-python3 main.py -c ../config/config_main_SG_${DOMAIN}_mrsol.ini 
+cd $HOME/Scripts/Climulator/src
+python3 main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
-#cd $HOME/Script/HCLIMAI
+#cd $HOME/Script/Climulator
 #python -m pytest
 
 current_date_time="`date`";

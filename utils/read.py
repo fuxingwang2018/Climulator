@@ -47,7 +47,7 @@ class Read(object):
         var_list_nc = []
         for ivar, nc_files in nc_files_dict.items():
             icount = 0
-            print('ivar, nc_files:', ivar, nc_files)
+            #print('ivar, nc_files:', ivar, nc_files)
             for ifile in nc_files:
                 data = netCDF4.Dataset(ifile)
                 #var = list(data.variables.keys())[-1]
@@ -61,7 +61,7 @@ class Read(object):
 
             var_dict[ivar] = var_data #np.array(data.variables[var])
             var_list_nc.append(ivar)
-            print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
+            #print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)
 
         #var_nc = np.array(var_dict['pr'])

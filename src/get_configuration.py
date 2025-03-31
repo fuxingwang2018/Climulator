@@ -68,16 +68,18 @@ def default_stats_config(stats):
             'batch_size': 50, 
             'EPOCHS': 100, 
             'EPOCH_INIT': 0, 
-            'TEST_SIZE': 3000, 
+            'TEST_SIZE': 1460,
+            'VALIDATION_SPLIT': 0.1,
             'RANDOM_STATE': 24}, 
         'TRAINING': {
             'SUBSAMPLING_LR': 4, 
             'N_RES_BLOCK': 8, 
             'NX': 104,
             'NY': 88,
-            'LEARNING_RATE':1e-4,
+            'LEARNING_RATE': {'GENERATOR':1e-4, 'DISCRIMINATOR':2e-4},
             'DROPOUT_RATE':0.3, 
-            'EARLY_STOP':False} 
+            'EARLY_STOP':False, 
+            'DATA_AUGMENTATION':False} 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 
