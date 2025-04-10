@@ -2,7 +2,7 @@
 ###SBATCH -N 2
 ###SBATCH -t 01:00:00 
 ###SBATCH -t 3:00:00 
-#SBATCH -J SGTDtas
+#SBATCH -J SGTDtp 
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -15,15 +15,12 @@
 #SBATCH --ntasks=8
 #SBATCH --cpus-per-task=8
 
-#export TF_DETERMINISTIC_OPS=1
-export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
-
 #DOMAIN='EmiliaRomagna'
 DOMAIN='TestDomain'
-VARIABLE='tas'
+VARIABLE='tas_pr'
 #export CUDA_VISIBLE_DEVICES=1 
 
-echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
+echo 'domain is' ${DOMAIN}
 #ecinteractive -g
 module load netcdf4/4.9.2
 #module load python3/new

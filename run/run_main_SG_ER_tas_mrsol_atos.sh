@@ -1,29 +1,29 @@
 #!/bin/bash 
-###SBATCH -N 2
-###SBATCH -t 01:00:00 
-###SBATCH -t 3:00:00 
-#SBATCH -J SGTDtas
+###SBATCH -N 4
+###SBATCH --nodes 2
+###SBATCH -t 03:00:00 
+#SBATCH -J SGERtm
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH --gpus=1
+#SBATCH --gpus=2
 #SBATCH --qos=ng
 ###SBATCH --qos=np
-#SBATCH --mem-per-cpu=4G
-###SBATCH --ntasks=8
-###SBATCH --cpus-per-task=8
-#SBATCH --ntasks=8
-#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-gpu=128G
+###SBATCH --mem=480G
+###SBATCH --ntasks=128
+###SBATCH --cpus-per-task=2
+###SBATCH --ntasks-per-node=128
+###SBATCH --hint=nomultithread
 
-#export TF_DETERMINISTIC_OPS=1
-export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
-
-#DOMAIN='EmiliaRomagna'
-DOMAIN='TestDomain'
-VARIABLE='tas'
+DOMAIN='EmiliaRomagna'
+#DOMAIN='TestDomain'
+VARIABLE='tas_mrsol'
+export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
+export TF_FORCE_GPU_ALLOW_GROWTH=true
 
-echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
+echo 'domain is' ${DOMAIN}
 #ecinteractive -g
 module load netcdf4/4.9.2
 #module load python3/new

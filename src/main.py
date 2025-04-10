@@ -4,7 +4,7 @@ import preprocess
 import postprocess
 import get_configuration
 sys.path.insert(0, '..')
-from utils import read, checkdir, file_writer, gpus_func 
+from utils import read, checkdir, file_writer, gpus_func, seed
 from SRGANs import feature_selection, train
 import numpy as np
 import glob
@@ -17,6 +17,7 @@ def main():
     #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     #tf.keras.backend.clear_session()
     #gc.collect()
+    seed.set_seed(42)
 
     # Get configuration 
     args = get_configuration.get_args()
@@ -114,7 +115,7 @@ def main():
 
 
     num_gpus = gpus_func.get_num_gpus()
-    assert BATCH_SIZE % num_gpus == 0
+    if num_gpus > 0: assert BATCH_SIZE % num_gpus == 0
 
     print('num_gpus, BATCH_SIZE', num_gpus, BATCH_SIZE)
 
@@ -230,6 +231,24 @@ def main():
     """
 
     y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
+
+
+    # Step 4: Get generator output
+    output_image = generator.predict(X_test)
+    print("\n Generator Output:")
+    print("Shape:", output_image.shape)
+    print("Sample pixel (0,0):", output_image[0, 0, 0])
+
+    # Step 5: Extract and print intermediate activation
+    layer_name = 'Conv2d'  # this is the first conv layer we named earlier
+    intermediate_model = models.Model(inputs=generator.input,
+                                  outputs=generator.get_layer(layer_name).output)
+
+    activations = intermediate_model.predict(X_test, const_test)
+    print("\n⚡ Intermediate Activation (first_conv):")
+    print("Shape:", activations.shape)
+    print("First channel value at (0,0):", activations[0, 0, 0, 0])
+
 
     print('min max of y_test', np.nanmin(y_test), np.nanmax(y_test))
     print('min max of y_pred', np.nanmin(y_pred), np.nanmax(y_pred))

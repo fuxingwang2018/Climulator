@@ -12,7 +12,7 @@ from SRGANs.Model_Generator import model_generator
 from SRGANs.Model_Discriminator import model_discriminator
 from SRGANs.Losses import generator_loss, discriminator_loss
 from SRGANs.srgan import SRGAN
-from utils import read
+from utils import read, seed
 from SRGANs.Network import Generator
 import postprocess
 from keras.models import Model
@@ -23,7 +23,7 @@ class TrainModel(object):
     def __init__(self, wdir):
 
         self.wdir = wdir
-
+        seed.set_seed(42)
 
     def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
@@ -37,16 +37,20 @@ class TrainModel(object):
  
         model_name = f"model_1"
 
-        """
-        lr_schedule_gen = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=LEARNING_RATE['GENERATOR'], decay_steps=10000, decay_rate=0.9
-            )
-        lr_schedule_dis = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=LEARNING_RATE['DISCRIMINATOR'], decay_steps=10000, decay_rate=0.9
-            )
-        """
-        generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['GENERATOR']) #1e-4)
-        discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['DISCRIMINATOR']) #1e-4)
+        LR_DECAY = False
+        if LR_DECAY:
+            lr_schedule_gen = tf.keras.optimizers.schedules.ExponentialDecay(
+                initial_learning_rate=LEARNING_RATE['GENERATOR'], decay_steps=10000, decay_rate=0.9
+                )
+            lr_schedule_dis = tf.keras.optimizers.schedules.ExponentialDecay(
+                initial_learning_rate=LEARNING_RATE['DISCRIMINATOR'], decay_steps=10000, decay_rate=0.9
+                )
+            generator_optimizer = tf.keras.optimizers.Adam(lr_schedule_gen) 
+            discriminator_optimizer = tf.keras.optimizers.Adam(lr_schedule_dis) 
+        else:
+            generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['GENERATOR']) #1e-4)
+            discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE['DISCRIMINATOR']) #1e-4)
+
         #generator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) # (1e-4)
         #discriminator_optimizer = tf.keras.optimizers.legacy.Adam(LEARNING_RATE) #(1e-4)
 
