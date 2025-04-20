@@ -206,10 +206,7 @@ class PreProcess(object):
             high_res_shape = var_high_res_adjusted_dict[key].shape
             residue_time_high_res = high_res_shape[0] % batch_size
             if residue_time_high_res != 0 :
-                #if key in var_high_res_adjusted_dict:
-                for key_hr, values_hr in var_high_res_adjusted_dict.items():
-                    print('key in var_high_res_adjusted_dict', key_hr)
-                    var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:-residue_time_high_res, ] # remove the last few elements
+                var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, ] # remove the last few elements
             print('residue_time_high_res', residue_time_high_res)
 
 
@@ -219,10 +216,7 @@ class PreProcess(object):
             high_res_shape = var_const_high_res_adjusted_dict[key].shape
             residue_time_const_high_res = high_res_shape[0] % batch_size
             if residue_time_const_high_res != 0 :
-                #if key in var_high_res_adjusted_dict:
-                for key_hr, values_hr in var_const_high_res_adjusted_dict.items():
-                    print('key in var_high_res_adjusted_dict', key_hr)
-                    var_const_high_res_adjusted_dict[key_hr] = var_const_high_res_adjusted_dict[key_hr][:-residue_time_const_high_res, ] # remove the last few elements
+                var_const_high_res_adjusted_dict[key] = var_const_high_res_adjusted_dict[key][:-residue_time_const_high_res, ] # remove the last few elements
             print('residue_time_const_high_res', residue_time_const_high_res)
 
         ikey = 0                       
@@ -257,12 +251,6 @@ class PreProcess(object):
 
             # the size of the time (1st) dimension should be divisible by batch_size = 50 
             residue_time_low_res = low_res_shape[0] % batch_size
-            #residue_time_high_res = high_res_shape[0] % batch_size
-            #if residue_time_high_res != 0 :
-            #    #if key in var_high_res_adjusted_dict:
-            #    for key_hr, values_hr in var_high_res_adjusted_dict.items():
-            #        print('key in var_high_res_adjusted_dict', key_hr)
-            #        var_high_res_adjusted_dict[key_hr] = var_high_res_adjusted_dict[key_hr][:-residue_time_high_res, ] # remove the last few elements
             if residue_time_low_res != 0:
                 var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
             print('residue_time_low_res', residue_time_low_res)

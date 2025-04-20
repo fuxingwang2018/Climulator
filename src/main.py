@@ -222,7 +222,6 @@ def main():
                 METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                 dataset_train, dataset_valid)
     """
-
     trainmodel = train.TrainModel(wdir)
     generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
@@ -232,9 +231,9 @@ def main():
 
     y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
 
-
+    """
     # Step 4: Get generator output
-    output_image = generator.predict(X_test)
+    output_image = generator.predict(X_test, const_test)
     print("\n Generator Output:")
     print("Shape:", output_image.shape)
     print("Sample pixel (0,0):", output_image[0, 0, 0])
@@ -248,7 +247,7 @@ def main():
     print("\n⚡ Intermediate Activation (first_conv):")
     print("Shape:", activations.shape)
     print("First channel value at (0,0):", activations[0, 0, 0, 0])
-
+    """
 
     print('min max of y_test', np.nanmin(y_test), np.nanmax(y_test))
     print('min max of y_pred', np.nanmin(y_pred), np.nanmax(y_pred))
