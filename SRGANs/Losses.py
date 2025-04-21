@@ -85,6 +85,7 @@ def discriminator_loss_origin(real_Y, fake_Y):
 
 def generator_loss_origin(fake_Y, hr_predic, hr_target):
 
+    num_gpus = gpus_func.get_num_gpus()
     cross_entropy = losses.BinaryCrossentropy()
     
     print('fake_Y.shape:', fake_Y.shape)

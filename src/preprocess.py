@@ -50,7 +50,7 @@ class PreProcess(object):
 
         shape = var.shape
         var = var.reshape((shape[0], -1))
-        scale.fit(var_ref_to_fit)
+        self.scale.fit(var_ref_to_fit)
         var = scaler.inverse_transform(var)
         var = var.reshape(shape)
 

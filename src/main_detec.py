@@ -134,7 +134,7 @@ def main():
     trainmodel = train.TrainModel(wdir)
     generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY,
-        dataset_train, dataset_valid)
+        dataset_train, dataset_test)
     y_pred = trainmodel.prediction(generator, X_test, y_test)
 
     print('min max of y_test', np.nanmin(y_test), np.nanmax(y_test))
