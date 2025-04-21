@@ -2,6 +2,8 @@
 module load CDO/2.3.0-eccodes-aec-cmor-fftw-hpc2-intel-2023a-eb
 
 EXP='FPS3'
+GCM="ICHEC-EC-EARTH_RCP85_LC" #ECMWF-ERAINT
+DOMAIN='Emilia_Romagna'
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
@@ -35,8 +37,16 @@ elif [[ "$EXP" == "FPS3" ]]; then
     #indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
     #experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
     # for fx fields like orog 
-    indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r0i0p0/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
-    experiment='ALP-3_ECMWF-ERAINT_evaluation_r0i0p0_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2v1'
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r0i0p0/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ECMWF-ERAINT_evaluation_r0i0p0_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ICHEC-EC-EARTH/historical/r0i0p0/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ICHEC-EC-EARTH_historical_r0i0p0_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]] || [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ICHEC-EC-EARTH/rcp85/r0i0p0/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r0i0p0_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2v1'
+    fi
     experiment_cmorized='3km'
     freq_in='fx'
     freq_out='fx'
@@ -55,16 +65,20 @@ if [[ "$EXP" == "NorCP12" || "$EXP" == "NorCP3" ]]; then
     latmin='57.1'
     latmax='59.5'
 else
-    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/'
-    #lonmin='9'
-    #lonmax='13'
-    #latmin='45.5'
-    #latmax='47.7'
-    #ASPECT3 domain
-    lonmin='4.0'
-    lonmax='19.0'
-    latmin='40.0'
-    latmax='49.0'
+    if [[ "$DOMAIN" == "Test_Domain" ]]; then
+        OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/'$GCM/
+        lonmin='9'
+        lonmax='13'
+        latmin='45.5'
+        latmax='47.7'
+    elif [[ "$DOMAIN" == "Emilia_Romagna" ]]; then
+        OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'$GCM/
+        #ASPECT3 domain
+        lonmin='4.0'
+        lonmax='19.0'
+        latmin='40.0'
+        latmax='49.0'
+    fi
 fi
 
 for ivar in ${VAR_LIST[@]} ; do

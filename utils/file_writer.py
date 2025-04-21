@@ -76,7 +76,7 @@ class FileWriter(object):
         nc_file_2D_id = Dataset(nc_file_2D, 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
         nc_attrs_2d, nc_dims_2d, nc_vars_2d = nd.ncdump(nc_file_2D_id)
 
-        #print('nc_file_2D:', nc_file_2D)
+        print('nc_file_2D:', nc_file_2D)
         # Extract data from NetCDF file
         #lon_2d = nc_file_2D_id.variables['longitude'][:]  # extract/copy the data
         #lat_2d = nc_file_2D_id.variables['latitude'][:]
@@ -94,8 +94,8 @@ class FileWriter(object):
         #time_2d = nc_file_2D_id.variables['time'][time_offset*(-1):]
         time_start = time_offset*(-1) + time_length*(-1)
         time_end = time_offset*(-1)
-        time_2d = nc_file_2D_id.variables['time'][time_start:time_end]
-        #print('time_start, time_end, time_2d', time_start, time_end, time_2d)
+        time_2d = nc_file_2D_id.variables['time'][time_start:time_end] if time_end != 0 else nc_file_2D_id.variables['time'][time_start:]
+        print('time_start, time_end, time_2d', time_start, time_end, time_2d)
 
         # Open a new NetCDF file to write the data to. 
         # Choose format from 'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', and 'NETCDF4'

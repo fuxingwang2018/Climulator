@@ -1,57 +1,101 @@
-
 #!/bin/bash
 
 EXP='FPS12'
 FIRST_MONTH=01
 LAST_MONTH=12
 #DOMAIN='Test_Domain' #Emilia_Romagna
-DOMAIN='ALP'
+DOMAIN='Emilia_Romagna'
+#DOMAIN='ALP'
+GCM="ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
+#ICHEC-EC-EARTH_HIST, ICHEC-EC-EARTH_RCP85_LC
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
     # for tas, pr, CAPE  clivi  clt  clwvi  huss  prra  prsn  prw  ps  uas  vas (1hr)
     # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
-    indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/'
-    experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/'
+        experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+        FIRST_YEAR=2000
+        LAST_YEAR=2009 #2014 available but 2009 to consistent with FPS3, 2009 discarded because of spinup
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ICHEC-EC-EARTH/historical/'
+        experiment='ALP-12_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+        FIRST_YEAR=1995
+        LAST_YEAR=2005 #2014 available but 2009 to consistent with FPS3, 2009 discarded because of spinup
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ICHEC-EC-EARTH/rcp85/'
+        experiment='ALP-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+        FIRST_YEAR=2040
+        LAST_YEAR=2050 
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ICHEC-EC-EARTH/rcp85/'
+        experiment='ALP-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+        FIRST_YEAR=2089
+        LAST_YEAR=2099 
+    fi
 
     # for ta500..950, hus500..950, ua500..950, va500..950 (3hr), phi500..950 (6hr)
-    #indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
-    #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
-    #experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
+        #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
+        experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_CMORise' 
+        experiment='ALP-12_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-METNo-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_RCP85_MC_CMORise' 
+        experiment='ALP-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_RCP85_LC_CMORise' 
+        experiment='ALP-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-METNo-HCLIM38-ALADIN_v1'
+    fi
 
     experiment_cmorized='12km'
-    FIRST_YEAR=2000
-    LAST_YEAR=2009 #2014 available but 2009 to consistent with FPS3, 2009 discarded because of spinup
     #lonmin='4.5'
     #lonmax='17'
     #latmin='42.75'
     #latmax='48.5'
-    freq_in='1hr' #1hr, 3hr, 6hr, fx
+    freq_in='3hr' #1hr, 3hr, 6hr, fx
     freq_out='6hr' #fx
     ## VAR_LIST=('orog' ) # orog, does not work, use sellonlatbox_const.sh
-    VAR_LIST=('tas' ) # pr, tas
+    #VAR_LIST=('tas' ) # pr, tas
     #VAR_LIST=('mrso' 'mrsol' ) # pr, tas
     #VAR_LIST=('CAPE' 'clt' 'huss' 'ps' 'uas' 'vas' ) 
     #VAR_LIST=('hfls'  'hfss'  'mrfso'  'mrso'  'mrsol'	'rlds'  'rlns'  'rsds'  'rsns')
-    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
-    #	'hus500' 'hus700' 'hus850' 'hus950' \
-    #	'ua500' 'ua700' 'ua850' 'ua950' \
-    #	'va500' 'va700' 'va850' 'va950') # 3hr
+    VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
+    	'hus500' 'hus700' 'hus850' 'hus950' \
+    	'ua500' 'ua700' 'ua850' 'ua950' \
+    	'va500' 'va700' 'va850' 'va950') # 3hr
     #VAR_LIST=('phi500' 'phi700' 'phi850' 'phi950') # 6hr
 
 elif [[ "$EXP" == "FPS3" ]]; then 
-    indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
-    experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1' 
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ECMWF-ERAINT/evaluation/r1i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1' 
+        FIRST_YEAR=2000 # 1999 available but we discard it for spinup
+        LAST_YEAR=2009
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ICHEC-EC-EARTH/historical/r12i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        FIRST_YEAR=1995 # 1999 available but we discard it for spinup
+        LAST_YEAR=2005
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ICHEC-EC-EARTH/rcp85/r12i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        FIRST_YEAR=2040 
+        LAST_YEAR=2050
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/CORDEX-FPSCONV/output/ALP-3/HCLIMcom/ICHEC-EC-EARTH/rcp85/r12i1p1/HCLIMcom-HCLIM38-AROME/fpsconv-x2yn2-v1/'
+        experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        FIRST_YEAR=2089
+        LAST_YEAR=2099
+    fi
+
     experiment_cmorized='3km'
-    freq_in='1hr'  # '3hr' for mrsol
+    freq_in='3hr'  # '3hr' for mrsol
     freq_out='6hr'
-    VAR_LIST=('pr')  # mrsol, mrso, hfls, tas, pr
-    FIRST_YEAR=2000 # 1999 available but we discard it for spinup
-    LAST_YEAR=2009
-    #lonmin='9'
-    #lonmax='13'
-    #latmin='45.5'
-    #latmax='47.7'
+    VAR_LIST=('mrsol' 'mrso')  # mrsol, mrso, hfls, tas, pr
 fi
 
 SELMONTH=7
@@ -64,7 +108,7 @@ if [[ "$DOMAIN" == "Test_Domain" ]]; then
     lonmax='13'
     latmin='45.5'
     latmax='47.7'
-    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/'
+    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/'$GCM/
 
 elif [[ "$DOMAIN" == "Emilia_Romagna" ]]; then
 
@@ -73,7 +117,7 @@ elif [[ "$DOMAIN" == "Emilia_Romagna" ]]; then
     lonmax='19.0'
     latmin='40.0'
     latmax='49.0'
-    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'
+    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'$GCM/
 
 elif [[ "$DOMAIN" == "ALP" ]]; then
 
@@ -82,18 +126,25 @@ elif [[ "$DOMAIN" == "ALP" ]]; then
     lonmax='180.0'
     latmin='-90.0'
     latmax='90.0'
-    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'
+    OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'$GCM/
 fi
 
 # DAYHHMM
 
 if [[ "$freq_in" == "3hr" ]]; then
     # for ta500..950, hus500..950, ua500..950, va500..950, mrsol (3hr)
-    FIRST_DAYHHMM_IN=010000 # 3hr
-    LAST_DAYHHMM_IN=312100  # 3hr
-    # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
-    #FIRST_DAYHHMM_IN=010130 # 3hr
-    #LAST_DAYHHMM_IN=312230  # 3hr
+    if [[ " ${VAR_LIST[*]} " == " ta "* ]] || [[ " ${VAR_LIST[*]} " == " hus "* ]] || \
+        [[ " ${VAR_LIST[*]} " == " ua "* ]] || [[ " ${VAR_LIST[*]} " == " va "* ]] || \
+        [[ " ${VAR_LIST[*]} " == " mrso "* ]] || [[ " ${VAR_LIST[*]} " == " mrsol "* ]] ; then
+        FIRST_DAYHHMM_IN=010000 # 3hr
+        LAST_DAYHHMM_IN=312100  # 3hr
+    else
+        # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
+        #FIRST_DAYHHMM_IN=010130 # 3hr
+        #LAST_DAYHHMM_IN=312230  # 3hr
+        FIRST_DAYHHMM_IN=010000 # 3hr
+        LAST_DAYHHMM_IN=312100  # 3hr
+    fi
 elif [[ "$freq_in" == "6hr" ]]; then
     FIRST_DAYHHMM_IN=010000 # 6hr
     LAST_DAYHHMM_IN=311800  # 6hr

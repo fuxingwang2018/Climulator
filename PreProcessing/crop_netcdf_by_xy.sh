@@ -2,8 +2,9 @@
 
 # Define the base input directory
 resolution="3km"
-input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/original/"${resolution}
-output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/cropped/"${resolution}
+GCM="ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
+input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/original/"${GCM}"/"${resolution}
+output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/cropped/"${GCM}"/"${resolution}
 
 mkdir -p "$output_base_dir"  # Create output base directory if it doesn't exist
 
@@ -28,7 +29,8 @@ process_directory() {
     mkdir -p "$output_dir"
 
     # Loop through all NetCDF files in the current directory
-    for file in "$input_dir"/mrso_*.nc; do
+    #for file in "$input_dir"/mrso_*.nc; do
+    for file in "$input_dir"/*.nc; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")  # Extract the filename
             output_file="$output_dir/$filename"

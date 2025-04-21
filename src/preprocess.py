@@ -185,18 +185,11 @@ class PreProcess(object):
                 if i == 2 and residue_geo[i] == 2:
                     var_high_res = var_high_res[:, :, 1:-1, :] # remove the 1st and last elements
 
-        # the size of the 1st dimension should be divisible by batch_size = 50 
-        residue_time_low_res = low_res_shape[0] % 50
-        residue_time_high_res = high_res_shape[0] % 50
-        if residue_time_high_res != 0 :
-            var_high_res = var_high_res[:-12, :, :, :] # remove the 1st and last elements
-        if low_res_shape[0] % 50 != 0:
-            var_low_res = var_low_res[:-12, :, :, :] # remove the 1st and last elements
-
         """
         var_low_res_adjusted_dict = var_low_res_dict.copy()
         var_const_high_res_adjusted_dict = var_const_high_res_dict.copy()
         var_high_res_adjusted_dict = var_high_res_dict.copy()
+        residue_time_high_res, residue_time_const_high_res, residue_time_low_res = 0, 0, 0
 
         common_var = list(set(var_low_res_adjusted_dict).intersection(var_high_res_adjusted_dict))
         print('common_var:', common_var)
@@ -204,19 +197,18 @@ class PreProcess(object):
         for key, values in var_high_res_adjusted_dict.items():
 
             high_res_shape = var_high_res_adjusted_dict[key].shape
-            residue_time_high_res = high_res_shape[0] % batch_size
-            if residue_time_high_res != 0 :
-                var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, ] # remove the last few elements
+            #residue_time_high_res = high_res_shape[0] % batch_size
+            #if residue_time_high_res != 0 :
+            #    var_high_res_adjusted_dict[key] = var_high_res_adjusted_dict[key][:-residue_time_high_res, ] # remove the last few elements
             print('residue_time_high_res', residue_time_high_res)
 
 
-        residue_time_const_high_res = 0
         for key, values in var_const_high_res_adjusted_dict.items():
 
             high_res_shape = var_const_high_res_adjusted_dict[key].shape
-            residue_time_const_high_res = high_res_shape[0] % batch_size
-            if residue_time_const_high_res != 0 :
-                var_const_high_res_adjusted_dict[key] = var_const_high_res_adjusted_dict[key][:-residue_time_const_high_res, ] # remove the last few elements
+            #residue_time_const_high_res = high_res_shape[0] % batch_size
+            #if residue_time_const_high_res != 0 :
+            #    var_const_high_res_adjusted_dict[key] = var_const_high_res_adjusted_dict[key][:-residue_time_const_high_res, ] # remove the last few elements
             print('residue_time_const_high_res', residue_time_const_high_res)
 
         ikey = 0                       
@@ -250,9 +242,9 @@ class PreProcess(object):
             residue_geo_dict = {'x':residue_geo[2], 'y':residue_geo[1]}
 
             # the size of the time (1st) dimension should be divisible by batch_size = 50 
-            residue_time_low_res = low_res_shape[0] % batch_size
-            if residue_time_low_res != 0:
-                var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
+            #residue_time_low_res = low_res_shape[0] % batch_size
+            #if residue_time_low_res != 0:
+            #    var_low_res_adjusted_dict[key] = var_low_res_adjusted_dict[key][:-residue_time_low_res, ] # remove the last few elements
             print('residue_time_low_res', residue_time_low_res)
             ikey += 1
             

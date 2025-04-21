@@ -5,7 +5,7 @@
 #SBATCH -t 40:00:00 
 ###SBATCH -n 1  ##ntasks 
 ###SBATCH --mem=256000 
-#SBATCH -J SG 
+#SBATCH -J SGERpr 
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -16,6 +16,7 @@ module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
+VARIABLE='pr'
 
 current_date_time="`date`";
 echo The run starts from $current_date_time
@@ -27,8 +28,7 @@ conda activate hclimai
 set -exu 
 
 cd $HOME/Script/Climulator/src
-python main.py -c $HOME/Script/Climulator/config/config_main_SG_${DOMAIN}.ini 
-#python srgans_fw.py
+python main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_Freja.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest
