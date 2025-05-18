@@ -79,7 +79,8 @@ def default_stats_config(stats):
             'LEARNING_RATE': {'GENERATOR':1e-4, 'DISCRIMINATOR':2e-4},
             'DROPOUT_RATE':0.3, 
             'EARLY_STOP':False, 
-            'DATA_AUGMENTATION':False} 
+            'DATA_AUGMENTATION':False, 
+            'DISABLE_PARALLEL':False} 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 

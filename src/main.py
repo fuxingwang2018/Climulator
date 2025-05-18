@@ -17,7 +17,6 @@ def main():
     #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     #tf.keras.backend.clear_session()
     #gc.collect()
-    seed.set_seed(42)
 
     # Get configuration 
     args = get_configuration.get_args()
@@ -45,6 +44,9 @@ def main():
     DROPOUT_RATE = cdict['stats_conf']['TRAINING']['DROPOUT_RATE']
     EARLY_STOP = cdict['stats_conf']['TRAINING']['EARLY_STOP']
     DATA_AUGMENTATION = cdict['stats_conf']['TRAINING']['DATA_AUGMENTATION']
+    DISABLE_PARALLEL = cdict['stats_conf']['TRAINING']['DISABLE_PARALLEL']
+
+    seed.set_seed(seed = 42, disable_parallel = DISABLE_PARALLEL)
 
     experiment_name = cdict['experiment_name']
     path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']

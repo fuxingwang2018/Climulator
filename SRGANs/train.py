@@ -23,7 +23,6 @@ class TrainModel(object):
     def __init__(self, wdir):
 
         self.wdir = wdir
-        seed.set_seed(42)
 
     def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
