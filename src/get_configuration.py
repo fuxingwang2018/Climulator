@@ -80,7 +80,9 @@ def default_stats_config(stats):
             'DROPOUT_RATE':0.3, 
             'EARLY_STOP':False, 
             'DATA_AUGMENTATION':False, 
-            'DISABLE_PARALLEL':False} 
+            'USE_SEED':False, 
+            'DISABLE_PARALLEL':False, 
+            'ENFORCE_DETERMINISM':False} 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 

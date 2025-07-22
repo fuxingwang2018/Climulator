@@ -1,26 +1,31 @@
 #!/bin/bash 
-###SBATCH -N 4
-###SBATCH --nodes 2
+#SBATCH -N 1
+###SBATCH --nodes 1
 ###SBATCH -t 03:00:00 
+
 #SBATCH -J SGERtm
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH --gpus=2
+#SBATCH --gpus=1
 #SBATCH --qos=ng
-###SBATCH --qos=np
-#SBATCH --mem-per-gpu=128G
+#SBATCH --mem-per-gpu=450G
+
 ###SBATCH --mem=480G
-###SBATCH --ntasks=128
+###SBATCH --ntasks=512
 ###SBATCH --cpus-per-task=2
-###SBATCH --ntasks-per-node=128
+###SBATCH --ntasks-per-node=16
+#128
 ###SBATCH --hint=nomultithread
+###SBATCH -account=spselind
+#SBATCH -A spselind
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
 VARIABLE='tas_mrsol'
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
+export TF_DETERMINISTIC_OPS=0
 export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 echo 'domain is' ${DOMAIN}

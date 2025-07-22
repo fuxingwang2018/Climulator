@@ -45,8 +45,11 @@ def main():
     EARLY_STOP = cdict['stats_conf']['TRAINING']['EARLY_STOP']
     DATA_AUGMENTATION = cdict['stats_conf']['TRAINING']['DATA_AUGMENTATION']
     DISABLE_PARALLEL = cdict['stats_conf']['TRAINING']['DISABLE_PARALLEL']
+    ENFORCE_DETERMINISM = cdict['stats_conf']['TRAINING']['ENFORCE_DETERMINISM']
+    USE_SEED = cdict['stats_conf']['TRAINING']['USE_SEED']
 
-    seed.set_seed(seed = 42, disable_parallel = DISABLE_PARALLEL)
+    if USE_SEED:
+        seed.set_seed(seed = 42, disable_parallel = DISABLE_PARALLEL, enforce_determinism = ENFORCE_DETERMINISM)
 
     experiment_name = cdict['experiment_name']
     path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']
@@ -96,9 +99,14 @@ def main():
     dataset_train, dataset_test, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
     '''
     # reading data
-    readin = read.Read('netcdf')
-    var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
-    var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
+    #readin = read.Read('netcdf')
+    #var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
+    #var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
+    with tf.device("CPU"):
+        # https://stackoverflow.com/questions/72122939/resourceexhaustederror-graph-execution-error-when-trying-to-train-tensorflow
+        readin = read.Read('netcdf')
+        var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
+        var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
 
     # constant fields (eg, orography)
     var_const_high_res_dict = {}
@@ -121,8 +129,6 @@ def main():
 
     print('num_gpus, BATCH_SIZE', num_gpus, BATCH_SIZE)
 
-    #if num_gpus > 0:
-    #    tf.keras.mixed_precision.set_global_policy("mixed_float16")
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     gpus_func.set_gpus(num_gpus)
 

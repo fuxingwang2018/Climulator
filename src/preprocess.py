@@ -455,8 +455,9 @@ class PreProcess(object):
         print('Testing dataset shape:', X_test.shape, const_test.shape, y_test.shape)
 
         #if var_const_hr:
-        dataset_train_all = tf.data.Dataset.from_tensor_slices(((X_train, const_train), y_train))
-        dataset_test = tf.data.Dataset.from_tensor_slices(((X_test, const_test), y_test))
+        with tf.device("CPU"):
+            dataset_train_all = tf.data.Dataset.from_tensor_slices(((X_train, const_train), y_train))
+            dataset_test = tf.data.Dataset.from_tensor_slices(((X_test, const_test), y_test))
         #else: 
         #    dataset_train_all = tf.data.Dataset.from_tensor_slices((X_train, y_train))
         #    dataset_test = tf.data.Dataset.from_tensor_slices((X_test, y_test))
@@ -476,8 +477,9 @@ class PreProcess(object):
         print('val_size', val_size)
 
         # Split dataset into training and validation
-        dataset_train = dataset_train_all.skip(val_size)
-        dataset_valid = dataset_train_all.take(val_size)
+        with tf.device("CPU"):
+            dataset_train = dataset_train_all.skip(val_size)
+            dataset_valid = dataset_train_all.take(val_size)
 
 
         print('dataset_train_all type:', type(dataset_train_all))
@@ -490,9 +492,10 @@ class PreProcess(object):
         print('dataset_test len:', np.shape(dataset_test.element_spec[0]), np.shape(dataset_test.element_spec[1])[0], np.shape(dataset_test.element_spec[1]))
         print('dataset_valid len:', np.shape(dataset_valid.element_spec[0]), np.shape(dataset_valid.element_spec[1])[0], np.shape(dataset_valid.element_spec[1]))
 
-        dataset_train = dataset_train.batch(batch_size, drop_remainder=True)
-        dataset_test = dataset_test.batch(batch_size, drop_remainder=True)
-        dataset_valid = dataset_valid.batch(batch_size, drop_remainder=True)
+        with tf.device("CPU"):
+            dataset_train = dataset_train.batch(batch_size, drop_remainder=True)
+            dataset_test = dataset_test.batch(batch_size, drop_remainder=True)
+            dataset_valid = dataset_valid.batch(batch_size, drop_remainder=True)
 
         """
         shape = X_train.shape

@@ -5,6 +5,7 @@ import tensorflow as tf
 from SRGANs import ViT, SwinTransformer
 #from tensorflow.keras.applications import EfficientNetV2B0
 #from tensorflow.keras.regularizers import l2
+import gc
 
 # https://github.com/paulaharder/deep-downscaling-overview
 
@@ -211,6 +212,9 @@ def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_
     model = tf.keras.models.Model([inputs_low_res, inputs_high_res], outputs, name='Generator')
 
     print(model.summary())
+
+    #del conv_1, prelu_1, batch_1, add_1
+    #gc.collect()
 
     return model
 

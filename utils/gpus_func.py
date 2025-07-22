@@ -19,6 +19,7 @@ def get_num_gpus():
     slurm_gpus = os.getenv("SLURM_JOB_GPUS")  # Fetch from SLURM
     num_gpus = len(slurm_gpus.split(",")) if slurm_gpus else 0  # Count GPUs
     print('num_gpus', num_gpus)
+    tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 10} )
 
     return num_gpus
 
@@ -26,6 +27,14 @@ def get_num_gpus():
 def set_gpus(num_gpus):
 
     gpus = tf.config.list_physical_devices('GPU')
+    #if num_gpus > 0:
+    #    # does not work, nan value in loss:  gen_loss: nan - disc_loss: nan - val_gen_loss: nan - val_disc_loss
+    #    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+
+    # Add print statements to VERIFY the policy immediately
+    print(f"TensorFlow global compute_dtype: {tf.keras.mixed_precision.global_policy().compute_dtype}")
+    print(f"TensorFlow global variable_dtype: {tf.keras.mixed_precision.global_policy().variable_dtype}")
+
     print('gpus:', gpus)
 
     # Limit GPU memory usage (optional)
@@ -48,6 +57,11 @@ def set_gpus(num_gpus):
                 #        gpus[0],
                 #        [tf.config.LogicalDeviceConfiguration(memory_limit=1024),
                 #         tf.config.LogicalDeviceConfiguration(memory_limit=1024)])
+
+                #tf.config.set_logical_device_configuration(
+                #        gpus[0],
+                #        [tf.config.LogicalDeviceConfiguration(memory_limit=40960)],
+                #        )
             except RuntimeError as e:
                 # Memory growth must be set before GPUs have been initialized
                 print('No GPU Error!')
@@ -59,10 +73,13 @@ def set_gpus(num_gpus):
             try:
                 for gpu in gpus:
                     tf.config.experimental.set_memory_growth(gpu, True)
-                    #tf.config.experimental.set_virtual_device_configuration(gpus[0],
+                    #tf.config.experimental.set_virtual_device_configuration(gpu,
                     #    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=40960)]  # Set memory limit in MB
                     #    )
-
+                    #tf.config.gpu.set_per_process_memory_fraction(0.4)
+                    #tf.config.set_logical_device_configuration(gpu,
+                    #    [tf.config.LogicalDeviceConfiguration(memory_limit=500)]  # limit in MB, adjust as needed
+                    #    )
                 print("Enabled GPU memory growth")
             except RuntimeError as e:
                 print(e)
