@@ -26,7 +26,7 @@ class Read(object):
         self.filetype = filetype
 
 
-    def read_netcdf(self, dir_nc, var_list, file_filter):
+    def read_netcdf_one_var_per_file(self, dir_nc, var_list, file_filter, time_idx_range = {'start_idx':0, 'end_idx':0}):
 
         nc_files_dict = {} 
 
@@ -40,6 +40,7 @@ class Read(object):
                 if varname in ifile and file_filter in ifile:
                     nc_files_list.append(ifile)
             nc_files_dict[varname] = nc_files_list
+        #nc_files_dict['time'] = nc_files_dict[var_list[0]]
 
         print('NetCDF files to read:', len(nc_files_dict), nc_files_dict)
 
@@ -58,14 +59,62 @@ class Read(object):
                     var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
                 icount += 1
                 data.close()
+            #if time_idx_range is not None:
+            if var_data.ndim > 2:
+                var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
+            else:
+                var_dict[ivar] = var_data
 
-            var_dict[ivar] = var_data #np.array(data.variables[var])
             var_list_nc.append(ivar)
-            #print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
+            print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)
+        #print('var_dict time:', var_dict['time'])
 
         #var_nc = np.array(var_dict['pr'])
 
+        #print('type of var_nc:', type(var_nc))
+        #print('shape of var_nc:', var_nc.shape)
+
+        return var_dict
+
+
+    def read_netcdf_multivar_singlefile(self, dir_nc, var_list, file_filter, time_idx_range = {'start_idx':0, 'end_idx':0}):
+
+        nc_files_all = glob.glob(dir_nc + '/' + '*')
+        nc_files_all.sort()
+        print('dir_nc:', dir_nc)
+        print('All NetCDF files:', len(nc_files_all), nc_files_all)
+        nc_files_list = []
+        #for ifile in nc_files_all:
+        #    if varname in ifile and file_filter in ifile:
+        #        nc_files_list.append(ifile)
+        #print('NetCDF files to read:', len(nc_files_list), nc_files_list)
+
+        var_dict = {}
+        var_list_nc = []
+        for ivar in var_list:
+            icount = 0
+            for ifile in nc_files_all:
+                data = netCDF4.Dataset(ifile)
+                #var = list(data.variables.keys())[-1]
+                if icount == 0:
+                    var_data = np.array(data.variables[ivar])
+                else:
+                    var_data_ifile = np.array(data.variables[ivar])
+                    var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
+                icount += 1
+                data.close()
+
+            if var_data.ndim > 2:
+                var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
+            else:
+                var_dict[ivar] = var_data
+            var_list_nc.append(ivar)
+
+        print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
+        print('Variables Read:', var_list_nc)
+
+        #var_nc = np.array(var_dict['pr'])
         #print('type of var_nc:', type(var_nc))
         #print('shape of var_nc:', var_nc.shape)
 
