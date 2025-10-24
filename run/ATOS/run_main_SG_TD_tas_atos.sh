@@ -38,7 +38,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../../config/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

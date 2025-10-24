@@ -1,4 +1,4 @@
-name: hclimai
+name: climulator
 channels:
   - conda-forge
   - defaults
