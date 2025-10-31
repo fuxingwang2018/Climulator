@@ -1,6 +1,6 @@
 import numpy as np
 import netCDF4
-import glob
+import glob, re
 import sys
 import numpy as np
 
@@ -28,17 +28,24 @@ class Read(object):
 
     def read_netcdf_one_var_per_file(self, dir_nc, var_list, file_filter, time_idx_range = {'start_idx':0, 'end_idx':0}):
 
+        pattern = re.compile(file_filter)
         nc_files_dict = {} 
 
         for varname in var_list:
-            print('varname:', varname)
-            nc_files_all = glob.glob(dir_nc + '/' + str(varname) + '/' + '*')
-            nc_files_all.sort()
-            #print('All NetCDF files:', len(nc_files_all), nc_files_all)
+            print('')
+            #print('varname:', varname)
+            #print('dir_nc:', dir_nc)
+            #nc_files_all = []
+            #nc_files_all = glob.glob(dir_nc + '/' + str(varname) + '/' + '*')
             nc_files_list = []
-            for ifile in nc_files_all:
-                if varname in ifile and file_filter in ifile:
-                    nc_files_list.append(ifile)
+            for item in dir_nc:
+                nc_files_all = glob.glob(item + '/' + str(varname) + '/' + '*')
+                nc_files_all.sort()
+                #print('All NetCDF files:', len(nc_files_all), nc_files_all)
+                for ifile in nc_files_all:
+                    #print('ifile:', ifile)
+                    if varname in ifile and pattern.search(ifile): #file_filter in ifile:
+                        nc_files_list.append(ifile)
             nc_files_dict[varname] = nc_files_list
         #nc_files_dict['time'] = nc_files_dict[var_list[0]]
 
@@ -52,18 +59,24 @@ class Read(object):
             for ifile in nc_files:
                 data = netCDF4.Dataset(ifile)
                 #var = list(data.variables.keys())[-1]
-                if icount == 0:
-                    var_data = np.array(data.variables[ivar])
+                var_data_ifile = np.array(data.variables[ivar])
+                if var_data_ifile.ndim > 2:
+                    var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
                 else:
-                    var_data_ifile = np.array(data.variables[ivar])
-                    var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
+                    var_data_ifile_cut = var_data_ifile
+                if icount == 0:
+                    #var_data = np.array(data.variables[ivar])
+                    var_data = var_data_ifile_cut
+                else:
+                    #var_data_ifile = np.array(data.variables[ivar])
+                    ar_data = np.concatenate((var_data, var_data_ifile_cut), axis = 0)
                 icount += 1
                 data.close()
             #if time_idx_range is not None:
-            if var_data.ndim > 2:
-                var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
-            else:
-                var_dict[ivar] = var_data
+            #if var_data.ndim > 2:
+            #    var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
+            #else:
+            var_dict[ivar] = var_data
 
             var_list_nc.append(ivar)
             print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
@@ -85,16 +98,17 @@ class Read(object):
         print('dir_nc:', dir_nc)
         print('All NetCDF files:', len(nc_files_all), nc_files_all)
         nc_files_list = []
-        #for ifile in nc_files_all:
-        #    if varname in ifile and file_filter in ifile:
-        #        nc_files_list.append(ifile)
-        #print('NetCDF files to read:', len(nc_files_list), nc_files_list)
+        for ifile in nc_files_all:
+            #if varname in ifile and file_filter in ifile:
+            if file_filter in ifile:
+                nc_files_list.append(ifile)
+        print('NetCDF files to read:', len(nc_files_list), nc_files_list)
 
         var_dict = {}
         var_list_nc = []
         for ivar in var_list:
             icount = 0
-            for ifile in nc_files_all:
+            for ifile in nc_files_list:
                 data = netCDF4.Dataset(ifile)
                 #var = list(data.variables.keys())[-1]
                 if icount == 0:

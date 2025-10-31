@@ -387,7 +387,7 @@ class PreProcess(object):
                 var_hr_4dim = np.expand_dims(var_hr[variable], axis=3)
 
             #X_train, X_test, y_train, y_test = train_test_split(var_lr[variable], var_hr[variable], test_size = TEST_SIZE, random_state = RANDOM_STATE)
-            X_train, X_test, y_train, y_test = train_test_split(var_lr_4dim, var_hr_4dim, test_size = TEST_SIZE, random_state = RANDOM_STATE)
+            X_train, X_test, y_train, y_test = train_test_split(var_lr_4dim, var_hr_4dim, test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
 
         elif downscale_mode == 'direct':
             # https://stackoverflow.com/questions/70953355/create-a-tensorflow-dataset-based-on-a-multi-input

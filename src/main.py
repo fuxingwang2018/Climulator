@@ -64,7 +64,7 @@ def main():
 
     #file_filter = '' #'hr_2000' # 'July'
     file_filter = cdict['file_filter'] #'hr_2000' # 'July'
-    file_filter_const = cdict['file_filter_const'] #'fx' 
+    #file_filter_const = cdict['file_filter_const'] #'fx' 
 
     print(cdict['variables'])
 
@@ -88,11 +88,17 @@ def main():
 
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, \
             NX, NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
-    dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
-    dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
+
+    dir_low_res, dir_high_res, dir_const = [], [], []
+    for item in path_x:
+        dir_low_res.append(item + '/' + resolution_low + '/' + frequency_low_res + '/')
+    for item in path_y:
+        dir_high_res.append(item + '/' + resolution_high + '/' + frequency_high_res + '/')
+        dir_const.append(item + '/'  + resolution_const + '/' + frequency_const) # + '/orog/' 
+    #dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
+    #dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
     downscale_mode = cdict['downscale mode']
 
-    dir_const = path_y + '/'  + resolution_const + '/' + frequency_const # + '/orog/' 
 
     checkdir.checkdir(path_figure)
     checkdir.checkdir(wdir)
@@ -105,17 +111,23 @@ def main():
     start_date_target, end_date_target = \
             cdict['time_range']['target']['start_date'], cdict['time_range']['target']['end_date']
 
+    start_idx_lowres, end_idx_lowres, start_idx_highres, end_idx_highres = [], [], [], []
 
-    all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres, end_date_all_lowres, step_hours)
-    all_times_highres = get_time_range.generate_time_series(start_date_all_highres, end_date_all_highres, step_hours)
-    start_idx_lowres,  end_idx_lowres  = get_time_range.get_time_indices(all_times_lowres, start_date_target, end_date_target)
-    start_idx_highres, end_idx_highres = get_time_range.get_time_indices(all_times_highres, start_date_target, end_date_target)
+    for i in range(len(start_date_all_lowres)):
+        all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[i], end_date_all_lowres[i], step_hours)
+        all_times_highres = get_time_range.generate_time_series(start_date_all_highres[i], end_date_all_highres[i], step_hours)
+        start_idx_lowres_i,  end_idx_lowres_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
+        start_idx_highres_i, end_idx_highres_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
+        start_idx_lowres.append(start_idx_lowres_i)
+        end_idx_lowres.append(end_idx_lowres_i)
+        start_idx_highres.append(start_idx_highres_i)
+        end_idx_highres.append(end_idx_highres_i)
+        print(f"Start time lowres: {all_times_lowres[start_idx_lowres_i]}, End time: {all_times_lowres[end_idx_lowres_i]}")
+        print(f"Start time highres: {all_times_highres[start_idx_highres_i]}, End time: {all_times_highres[end_idx_highres_i]}")
     time_idx_range_lowres = {'start_idx': start_idx_lowres, 'end_idx': end_idx_lowres}
     time_idx_range_highres = {'start_idx': start_idx_highres, 'end_idx': end_idx_highres}
     print(f"Start index lowres: {start_idx_lowres}, End index: {end_idx_lowres}")
-    print(f"Start time lowres: {all_times_lowres[start_idx_lowres]}, End time: {all_times_lowres[end_idx_lowres]}")
     print(f"Start index highres: {start_idx_highres}, End index: {end_idx_highres}")
-    print(f"Start time highres: {all_times_highres[start_idx_highres]}, End time: {all_times_highres[end_idx_highres]}")
 
 
     '''
@@ -130,20 +142,20 @@ def main():
         # https://stackoverflow.com/questions/72122939/resourceexhaustederror-graph-execution-error-when-trying-to-train-tensorflow
         readin = read.Read('netcdf')
         if file_x_mode == 'one_var_per_file': 
-            var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter, time_idx_range_lowres)
+            var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
         elif file_x_mode == 'multivar_singlefile': 
-            var_low_res_dict = readin.read_netcdf_multivar_singlefile(dir_low_res, varname_predictor_low_res,  file_filter, time_idx_range_lowres)
+            var_low_res_dict = readin.read_netcdf_multivar_singlefile(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
 
         if file_y_mode == 'one_var_per_file': 
-            var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter, time_idx_range_highres)
+            var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter['file_y'], time_idx_range_highres)
         elif file_y_mode == 'multivar_singlefile': 
-            var_high_res_dict = readin.read_netcdf_multivar_singlefile(dir_high_res, varname_predictand_high_res,  file_filter, time_idx_range_highres)
+            var_high_res_dict = readin.read_netcdf_multivar_singlefile(dir_high_res, varname_predictand_high_res,  file_filter['file_y'], time_idx_range_highres)
 
     # constant fields (eg, orography)
     var_const_high_res_dict = {}
     if len(varname_const) > 0:
         #preproc = preprocess.PreProcess()
-        var_const_dict = readin.read_netcdf_one_var_per_file(dir_const, varname_const, file_filter_const)
+        var_const_dict = readin.read_netcdf_one_var_per_file(dir_const, varname_const, file_filter['file_const'])
         nt, nx, ny = np.shape(var_high_res_dict[varname_predictand_high_res[0]])
         for key, values in var_const_dict.items():
             var_const_add_time = np.repeat(values[None, :, :], nt, axis=0)
@@ -344,7 +356,10 @@ def main():
                         residue_time_high_res, TEST_SIZE, residue_geo_dict, var_to_write_ytest_inverse)
 
     filewriter_x = file_writer.FileWriter(wdir + '/' + 'predictor.nc')
-    nc_files_to_read_x = glob.glob(dir_low_res +  '/' + varname_predictor_low_res[0] + '/' + '*')
+    if file_x_mode == 'one_var_per_file': 
+        nc_files_to_read_x = glob.glob(dir_low_res +  '/' + varname_predictor_low_res[0] + '/' + '*')
+    elif file_x_mode == 'multivar_singlefile': 
+        nc_files_to_read_x = glob.glob(dir_low_res +  '/' + '*' + file_filter['file_x'] + '*.nc')
     #filewriter_x.Write_NC(glob.glob(dir_low_res + varname_predictor_low_res[0] + '*')[0], \
     nc_files_to_read_x.sort()
     print('low res file', nc_files_to_read_x[0])
