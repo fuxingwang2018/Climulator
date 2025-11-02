@@ -2,13 +2,14 @@
 #SBATCH -N 1
 ###SBATCH --nodes 1
 
-#SBATCH -t 01:00:00 
+#SBATCH -t 08:00:00 
 #SBATCH -J SGERtas
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH --gpus=1
 #SBATCH --qos=ng
+###SBATCH --qos=dg
 ###SBATCH --qos=nf
 #SBATCH --mem-per-gpu=450G
 #SBATCH --gpus-per-node=1

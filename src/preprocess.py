@@ -410,11 +410,33 @@ class PreProcess(object):
                 print('y_tr', type(y_tr), len(y_tr))
                 print('y_te', len(y_te))
             """
+            # Define pre-selected test indices
+            test_idx = np.concatenate([
+                #np.arange(start, end + 1)  # inclusive of 'end'
+                np.arange(start, end)  
+                for start, end in zip(TEST_SIZE['start_idx'], TEST_SIZE['end_idx'])
+            ])
+
             x_tr, x_te, y_tr, y_te = [None]*len(var_lr), [None]*len(var_lr), [None]*len(var_hr), [None]*len(var_hr)
             const_tr, const_te = [None]*len(var_const_hr), [None]*len(var_const_hr)
             i = 0
             for key, values in var_lr.items():
-                x_tr_arr, x_te_arr = train_test_split(var_lr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+
+                if isinstance(TEST_SIZE, int):
+                    x_tr_arr, x_te_arr = train_test_split(var_lr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+
+                elif isinstance(TEST_SIZE, dict):
+
+                    # Create a mask for test and train sets
+                    all_indices = np.arange(len(var_lr[key]))
+                    train_idx = np.setdiff1d(all_indices, test_idx)
+                    # Split manually
+                    #print ('len all_indices', len(all_indices))
+                    #print ('train_idx', train_idx)
+                    #print ('test_idx', test_idx)
+                    #print ('len var_lr', len(var_lr[key]))
+                    x_tr_arr, x_te_arr = var_lr[key][train_idx], var_lr[key][test_idx]
+
                 x_tr[i], x_te[i] = x_tr_arr, x_te_arr
                 print('key lr', key, i, len(var_lr))
                 #print('x_tr', type(x_tr[i]), np.shape(x_tr[i]))
@@ -422,9 +444,20 @@ class PreProcess(object):
                 i += 1
             X_train = np.stack(x_tr, axis = 3)
             X_test  = np.stack(x_te, axis = 3)
+
             i = 0
             for key, values in var_hr.items():
-                y_tr_arr, y_te_arr = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+
+                if isinstance(TEST_SIZE, int):
+                    y_tr_arr, y_te_arr = train_test_split(var_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+
+                elif isinstance(TEST_SIZE, dict):
+                    # Create a mask for test and train sets
+                    all_indices = np.arange(len(var_hr[key]))
+                    train_idx = np.setdiff1d(all_indices, test_idx)
+                    # Split manually
+                    y_tr_arr, y_te_arr = var_hr[key][train_idx], var_hr[key][test_idx]
+
                 y_tr[i], y_te[i] = y_tr_arr, y_te_arr
                 print('key hr', key, i, len(var_hr))
                 print('y_tr', type(y_tr[i]), np.shape(y_tr[i]))
@@ -432,9 +465,19 @@ class PreProcess(object):
                 i += 1
             y_train = np.stack(y_tr, axis = 3)
             y_test  = np.stack(y_te, axis = 3)
+
             i = 0
             for key, values in var_const_hr.items():
-                const_tr_arr, const_te_arr = train_test_split(var_const_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+
+                if isinstance(TEST_SIZE, int):
+                    const_tr_arr, const_te_arr = train_test_split(var_const_hr[key], test_size = TEST_SIZE, random_state = RANDOM_STATE, shuffle = False)
+                elif isinstance(TEST_SIZE, dict):
+                    # Create a mask for test and train sets
+                    all_indices = np.arange(len(var_const_hr[key]))
+                    train_idx = np.setdiff1d(all_indices, test_idx)
+                    # Split manually
+                    const_tr_arr, const_te_arr = var_const_hr[key][train_idx], var_const_hr[key][test_idx]
+
                 const_tr[i], const_te[i] = const_tr_arr, const_te_arr
                 print('key const_hr', key, i, len(var_const_hr))
                 print('const_tr', type(const_tr[i]), np.shape(const_tr[i]))
@@ -446,6 +489,8 @@ class PreProcess(object):
             else:
                 const_train = np.empty_like(y_train)
                 const_test  = np.empty_like(y_test)
+
+
 
         #X_train = np.asarray(X_train)
         #y_train = np.asarray(y_train)

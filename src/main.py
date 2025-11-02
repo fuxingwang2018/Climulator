@@ -110,6 +110,8 @@ def main():
             cdict['time_range']['all_highres']['start_date'], cdict['time_range']['all_highres']['end_date']
     start_date_target, end_date_target = \
             cdict['time_range']['target']['start_date'], cdict['time_range']['target']['end_date']
+    start_date_test, end_date_test = \
+            cdict['time_range']['test']['start_date'], cdict['time_range']['test']['end_date']
 
     start_idx_lowres, end_idx_lowres, start_idx_highres, end_idx_highres = [], [], [], []
 
@@ -122,13 +124,30 @@ def main():
         end_idx_lowres.append(end_idx_lowres_i)
         start_idx_highres.append(start_idx_highres_i)
         end_idx_highres.append(end_idx_highres_i)
-        print(f"Start time lowres: {all_times_lowres[start_idx_lowres_i]}, End time: {all_times_lowres[end_idx_lowres_i]}")
-        print(f"Start time highres: {all_times_highres[start_idx_highres_i]}, End time: {all_times_highres[end_idx_highres_i]}")
+        print(f"Start time lowres all: {all_times_lowres[start_idx_lowres_i]}, End time: {all_times_lowres[end_idx_lowres_i]}")
+        print(f"Start time highres all: {all_times_highres[start_idx_highres_i]}, End time: {all_times_highres[end_idx_highres_i]}")
     time_idx_range_lowres = {'start_idx': start_idx_lowres, 'end_idx': end_idx_lowres}
     time_idx_range_highres = {'start_idx': start_idx_highres, 'end_idx': end_idx_highres}
-    print(f"Start index lowres: {start_idx_lowres}, End index: {end_idx_lowres}")
-    print(f"Start index highres: {start_idx_highres}, End index: {end_idx_highres}")
+    print(f"Start index lowres target: {start_idx_lowres}, End index: {end_idx_lowres}")
+    print(f"Start index highres target: {start_idx_highres}, End index: {end_idx_highres}")
 
+
+    start_idx_test, end_idx_test = [], []
+    all_times_target = []
+    for i in range(len(start_date_all_lowres)):
+        all_times_target_i = get_time_range.generate_time_series(start_date_target[i], end_date_target[i], step_hours)
+        start_idx_test_i,  end_idx_test_i  = get_time_range.get_time_indices(all_times_target_i, start_date_test[i], end_date_test[i])
+        start_idx_test.append(start_idx_test_i)
+        end_idx_test.append(end_idx_test_i)
+        all_times_target.append(all_times_target_i)
+        print(f"Start time test: {all_times_target_i[start_idx_test_i]}, End time: {all_times_target_i[end_idx_test_i]}")
+        print('len all_times_target_i', len(all_times_target_i))
+        if i > 0:
+            start_idx_test[i] += len(all_times_target[i-1]) -1 
+            end_idx_test[i]   += len(all_times_target[i-1]) -1 
+    time_idx_range_test = {'start_idx': start_idx_test, 'end_idx': end_idx_test}
+    print(f"Start index test: {start_idx_test}, End index: {end_idx_test}")
+    TEST_SIZE = time_idx_range_test
 
     '''
     preproc = preprocess.PreProcess()

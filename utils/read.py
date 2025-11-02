@@ -32,7 +32,6 @@ class Read(object):
         nc_files_dict = {} 
 
         for varname in var_list:
-            print('')
             #print('varname:', varname)
             #print('dir_nc:', dir_nc)
             #nc_files_all = []
@@ -64,12 +63,18 @@ class Read(object):
                     var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
                 else:
                     var_data_ifile_cut = var_data_ifile
+
                 if icount == 0:
                     #var_data = np.array(data.variables[ivar])
                     var_data = var_data_ifile_cut
                 else:
-                    #var_data_ifile = np.array(data.variables[ivar])
-                    ar_data = np.concatenate((var_data, var_data_ifile_cut), axis = 0)
+                    if var_data_ifile.ndim > 2:
+                        #var_data_ifile = np.array(data.variables[ivar])
+                        var_data = np.concatenate((var_data, var_data_ifile_cut), axis = 0)
+                    else:
+                        #var_data = np.stack([var_data, var_data_ifile_cut], axis = 0)
+                        var_data = var_data_ifile_cut
+
                 icount += 1
                 data.close()
             #if time_idx_range is not None:
