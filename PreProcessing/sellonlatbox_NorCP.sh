@@ -6,32 +6,85 @@
 #SBATCH -e slurm_error.txt
 #SBATCH -o slurm_output.txt
 
-EXP='NorCP12'
-FIRST_YEAR=1986 # 1985 available, but one-year spinup
-LAST_YEAR=2005 # 2005 available
+EXP='NorCP3'
+#EXP='NorCP3'
 FIRST_MONTH=01
 LAST_MONTH=12
+GCM="ECMWF-ERAINT" 
+#GCM="ICHEC-EC-EARTH_HIST" 
+#GCM="ICHEC-EC-EARTH_RCP85_MC"
+#GCM="ICHEC-EC-EARTH_RCP85_LC"
+#GCM="ICHEC-EC-EARTH_RCP45_MC"
+#GCM="ICHEC-EC-EARTH_RCP45_LC"
+
+if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+    FIRST_YEAR=1998 # 1997 available, but one-year spinup
+    LAST_YEAR=2018 # 2018 available
+elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+    FIRST_YEAR=1986 # 1985 available, but one-year spinup
+    LAST_YEAR=2005 # 2005 available
+elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]] || [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_LC" ]]; then
+    FIRST_YEAR=2081 # 2080 available, but one-year spinup
+    LAST_YEAR=2100 # 2100 available
+elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]] || [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_MC" ]]; then
+    FIRST_YEAR=2041 # 2040 available, but one-year spinup
+    LAST_YEAR=2060 # 2060 available
+fi
 
 if [[ "$EXP" == "NorCP12" ]]; then
-    indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_1985_2005/'
-    experiment='NEU-12_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ERAI_1997_2018/'
+        experiment='NEU-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_1985_2005/'
+        experiment='NEU-12_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_RCP85_2080_2100/'
+        experiment='NEU-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_RCP85_2040_2060/'
+        experiment='NEU-12_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_LC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_RCP45_2080_2100/'
+        experiment='NEU-12_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_MC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_ALADIN_ECE_RCP45_2040_2060/'
+        experiment='NEU-12_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
+    fi
     experiment_cmorized='12km'
     freq_in='6hr' #1hr for tas, pr; 3hr for ta500..1000, hus500..1000, ua500..1000, va500..1000; 6hr for zg500..1000
     freq_out='6hr' # 3hr, 6hr
-    #VAR_LIST=('pr' ) # pr, tas
-    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta1000' \
-    #	'hus500' 'hus700' 'hus850' 'hus1000' \
-    #	'ua500' 'ua700' 'ua850' 'ua1000' \
-    #	'va500' 'va700' 'va850' 'va1000' )
-    VAR_LIST=('zg500' 'zg700' 'zg850' 'zg1000')
+    VAR_LIST=('tas') # pr, tas
+    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' 'ta1000' \
+    #	'hus500' 'hus700' 'hus850' 'hus950' 'hus1000' \
+    #	'ua500' 'ua700' 'ua850' 'ua950' 'ua1000' \
+    #	'va500' 'va700' 'va850' 'va950' 'va1000' )
+    VAR_LIST=('zg500' 'zg700' 'zg850' 'zg950' 'zg1000')
 
 elif [[ "$EXP" == "NorCP3" ]]; then 
-    indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_1985_2005/'
-    experiment='NEU-3_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1' 
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ERAI_ALADIN_1998_2018/'
+        experiment='NEU-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_1985_2005/'
+        experiment='NEU-3_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1' 
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_RCP85_2080_2100/'
+        experiment='NEU-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_RCP85_2040_2060/'
+        experiment='NEU-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_LC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_RCP45_2080_2100/'
+        experiment='NEU-3_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_MC" ]]; then
+        indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_RCP45_2040_2060/'
+        experiment='NEU-3_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+    fi
     experiment_cmorized='3km'
     freq_in='1hr'
-    freq_out='3hr' # 3hr, 6hr
-    VAR_LIST=('pr')  # tas, pr
+    freq_out='6hr' # 3hr, 6hr
+    VAR_LIST=('tas')  # tas, pr
 fi
 
 SELMONTH=7
@@ -47,7 +100,7 @@ latmax='59.5'
 #latmin='56.5'
 #latmax='58.5'
 
-OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/NorCP/'
+OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/NorCP_SSE/original/'${GCM}/
 # DAYHHMM
 if [[ "$freq_in" == "3hr" ]]; then
     FIRST_DAYHHMM_IN=010000 # 3hr

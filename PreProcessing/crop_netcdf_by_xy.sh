@@ -1,20 +1,36 @@
 #!/bin/bash
 
 # Define the base input directory
-resolution="3km"
-GCM="ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
-input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/original/"${GCM}"/"${resolution}
-output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/Emilia_Romagna/cropped/"${GCM}"/"${resolution}
+EXP='NorCP'
+#EXP='FPS'
+#DOMAIN="Emilia_Romagna"
+DOMAIN="NorCP_SSE"
+resolution="12km" #12km
+#GCM="ECMWF-ERAINT" #"ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
+GCM="ICHEC-EC-EARTH_HIST" #ECMWF-ERAINT
+#GCM="ICHEC-EC-EARTH_RCP85_LC"
+input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/original/"${GCM}"/"${resolution}
+output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/cropped/"${GCM}"/"${resolution}
 
 mkdir -p "$output_base_dir"  # Create output base directory if it doesn't exist
 
 # Define the cropping range (x_start:x_end, y_start:y_end)
-if [[ "$resolution" == "12km" ]]; then
-    x_range="1,106"  # Replace with your desired range
-    y_range="1,88"   # Replace with your desired range
-elif [[ "$resolution" == "3km" ]]; then
-    x_range="1,424"  # Replace with your desired range
-    y_range="1,352"   # Replace with your desired range
+if [[ "$EXP" == "FPS" ]]; then
+    if [[ "$resolution" == "12km" ]]; then
+        x_range="1,106"   # Replace with your desired range
+        y_range="1,88"    # Replace with your desired range
+    elif [[ "$resolution" == "3km" ]]; then
+        x_range="1,424"   # Replace with your desired range
+        y_range="1,352"   # Replace with your desired range
+    fi
+elif [[ "$EXP" == "NorCP" ]]; then
+    if [[ "$resolution" == "12km" ]]; then
+        x_range="1,17"   # Replace with your desired range
+        y_range="1,23"   # Replace with your desired range
+    elif [[ "$resolution" == "3km" ]]; then
+        x_range="4,71"   # Replace with your desired range
+        y_range="1,92"   # Replace with your desired range
+    fi
 fi
 
 # Load modules if needed (e.g., on HPC systems)
@@ -29,8 +45,8 @@ process_directory() {
     mkdir -p "$output_dir"
 
     # Loop through all NetCDF files in the current directory
-    #for file in "$input_dir"/mrso_*.nc; do
-    for file in "$input_dir"/*.nc; do
+    for file in "$input_dir"/*_*.nc; do
+    #for file in "$input_dir"/*.nc; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")  # Extract the filename
             output_file="$output_dir/$filename"

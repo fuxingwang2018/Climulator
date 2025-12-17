@@ -1,18 +1,20 @@
 #!/bin/bash
 
-EXP='FPS12'
+EXP='FPS12' #FPS12
 FIRST_MONTH=01
 LAST_MONTH=12
-#DOMAIN='Test_Domain' #Emilia_Romagna
-DOMAIN='Emilia_Romagna'
+DOMAIN='Test_Domain' #Emilia_Romagna
+#DOMAIN='Emilia_Romagna'
 #DOMAIN='ALP'
-GCM="ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
-#ICHEC-EC-EARTH_HIST, ICHEC-EC-EARTH_RCP85_LC
+GCM="ECMWF-ERAINT" #"ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
+#GCM="ICHEC-EC-EARTH_HIST" #, 
+#GCM="ICHEC-EC-EARTH_RCP85_LC"
+
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
     # for tas, pr, CAPE  clivi  clt  clwvi  huss  prra  prsn  prw  ps  uas  vas (1hr)
-    # for hfls  hfss  hus500  mrfso  mrso  mrsol  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
+    # for hfls  hfss  hus500  mrfso  mrso  rlds  rlns  rsds  rsns  ta500  va850 (3hr)
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
         indir0='/nobackup/rossby26/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/'
         experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
@@ -35,13 +37,13 @@ if [[ "$EXP" == "FPS12" ]]; then
         LAST_YEAR=2099 
     fi
 
-    # for ta500..950, hus500..950, ua500..950, va500..950 (3hr), phi500..950 (6hr)
+    # for mrsol, ta500..950, hus500..950, ua500..950, va500..950 (3hr), phi500..950 (6hr)
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
         indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
         #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
         experiment='ALP-12_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-SMHI-HCLIM38-ALADIN_v1'
     elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
-        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_CMORise' 
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_HIST_CMORise' 
         experiment='ALP-12_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-METNo-HCLIM38-ALADIN_v1'
     elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
         indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ECEARTH_RCP85_MC_CMORise' 
@@ -61,12 +63,14 @@ if [[ "$EXP" == "FPS12" ]]; then
     ## VAR_LIST=('orog' ) # orog, does not work, use sellonlatbox_const.sh
     #VAR_LIST=('tas' ) # pr, tas
     #VAR_LIST=('mrso' 'mrsol' ) # pr, tas
+    VAR_LIST=('mrsol' ) # pr, tas
+    #VAR_LIST=('hus500' )
     #VAR_LIST=('CAPE' 'clt' 'huss' 'ps' 'uas' 'vas' ) 
     #VAR_LIST=('hfls'  'hfss'  'mrfso'  'mrso'  'mrsol'	'rlds'  'rlns'  'rsds'  'rsns')
-    VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
-    	'hus500' 'hus700' 'hus850' 'hus950' \
-    	'ua500' 'ua700' 'ua850' 'ua950' \
-    	'va500' 'va700' 'va850' 'va950') # 3hr
+    #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' \
+    #	'hus500' 'hus700' 'hus850' 'hus950' \
+    #	'ua500' 'ua700' 'ua850' 'ua950' \
+    #	'va500' 'va700' 'va850' 'va950') # 3hr
     #VAR_LIST=('phi500' 'phi700' 'phi850' 'phi950') # 6hr
 
 elif [[ "$EXP" == "FPS3" ]]; then 
@@ -93,9 +97,9 @@ elif [[ "$EXP" == "FPS3" ]]; then
     fi
 
     experiment_cmorized='3km'
-    freq_in='3hr'  # '3hr' for mrsol
+    freq_in='1hr'  # '3hr' for mrsol
     freq_out='6hr'
-    VAR_LIST=('mrsol' 'mrso')  # mrsol, mrso, hfls, tas, pr
+    VAR_LIST=('tas') #('mrsol' 'mrso')  # mrsol, mrso, hfls, tas, pr
 fi
 
 SELMONTH=7
