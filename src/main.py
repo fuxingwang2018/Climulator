@@ -4,7 +4,7 @@ import preprocess
 import postprocess
 import get_configuration
 sys.path.insert(0, '..')
-from utils import read, checkdir, file_writer, gpus_func, seed
+from utils import read, checkdir, file_writer, gpus_func, seed, get_time_range
 from SRGANs import feature_selection, train
 import numpy as np
 import glob
@@ -48,17 +48,23 @@ def main():
     ENFORCE_DETERMINISM = cdict['stats_conf']['TRAINING']['ENFORCE_DETERMINISM']
     USE_SEED = cdict['stats_conf']['TRAINING']['USE_SEED']
 
+    TRAINING_MODE = cdict['stats_conf']['RUNNING_MODE']['TRAINING_MODE']
+    PREDICTION_MODE = cdict['stats_conf']['RUNNING_MODE']['PREDICTION_MODE']
+    PRETRAINED_GENERATOR = cdict['stats_conf']['RUNNING_MODE']['PRETRAINED_GENERATOR']
+
     if USE_SEED:
         seed.set_seed(seed = 42, disable_parallel = DISABLE_PARALLEL, enforce_determinism = ENFORCE_DETERMINISM)
 
     experiment_name = cdict['experiment_name']
-    path_main, path_x, path_y = cdict['path_main'], cdict['path_x'], cdict['path_y']
+    path_main = cdict['path_main']
+    file_x_mode, path_x = cdict['path_x']['file_mode'], cdict['path_x']['path']
+    file_y_mode, path_y = cdict['path_y']['file_mode'], cdict['path_y']['path']
     wdir = path_main + '/SRGAN_OUT/' + 'EPOCH' + str(EPOCHS) + '_' + str(experiment_name) + '/'
     path_figure = path_main + '/Figure/' + 'EPOCH' + str(EPOCHS) + '_' + str(experiment_name) + '/'
 
     #file_filter = '' #'hr_2000' # 'July'
     file_filter = cdict['file_filter'] #'hr_2000' # 'July'
-    file_filter_const = cdict['file_filter_const'] #'fx' 
+    #file_filter_const = cdict['file_filter_const'] #'fx' 
 
     print(cdict['variables'])
 
@@ -82,14 +88,66 @@ def main():
 
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, \
             NX, NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
-    dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
-    dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
+
+    dir_low_res, dir_high_res, dir_const = [], [], []
+    for item in path_x:
+        dir_low_res.append(item + '/' + resolution_low + '/' + frequency_low_res + '/')
+    for item in path_y:
+        dir_high_res.append(item + '/' + resolution_high + '/' + frequency_high_res + '/')
+        dir_const.append(item + '/'  + resolution_const + '/' + frequency_const) # + '/orog/' 
+    #dir_low_res = path_x + '/' + resolution_low + '/' + frequency_low_res + '/' 
+    #dir_high_res = path_y + '/' + resolution_high + '/' + frequency_high_res + '/'
     downscale_mode = cdict['downscale mode']
 
-    dir_const = path_x + '/'  + resolution_const + '/' + frequency_const # + '/orog/' 
 
     checkdir.checkdir(path_figure)
     checkdir.checkdir(wdir)
+
+    step_hours = int(cdict['time_range']['step_hours'])
+    start_date_all_lowres, end_date_all_lowres= \
+            cdict['time_range']['all_lowres']['start_date'], cdict['time_range']['all_lowres']['end_date']
+    start_date_all_highres, end_date_all_highres= \
+            cdict['time_range']['all_highres']['start_date'], cdict['time_range']['all_highres']['end_date']
+    start_date_target, end_date_target = \
+            cdict['time_range']['target']['start_date'], cdict['time_range']['target']['end_date']
+    start_date_test, end_date_test = \
+            cdict['time_range']['test']['start_date'], cdict['time_range']['test']['end_date']
+
+    start_idx_lowres, end_idx_lowres, start_idx_highres, end_idx_highres = [], [], [], []
+
+    for i in range(len(start_date_all_lowres)):
+        all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[i], end_date_all_lowres[i], step_hours)
+        all_times_highres = get_time_range.generate_time_series(start_date_all_highres[i], end_date_all_highres[i], step_hours)
+        start_idx_lowres_i,  end_idx_lowres_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
+        start_idx_highres_i, end_idx_highres_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
+        start_idx_lowres.append(start_idx_lowres_i)
+        end_idx_lowres.append(end_idx_lowres_i)
+        start_idx_highres.append(start_idx_highres_i)
+        end_idx_highres.append(end_idx_highres_i)
+        print(f"Start time lowres all: {all_times_lowres[start_idx_lowres_i]}, End time: {all_times_lowres[end_idx_lowres_i]}")
+        print(f"Start time highres all: {all_times_highres[start_idx_highres_i]}, End time: {all_times_highres[end_idx_highres_i]}")
+    time_idx_range_lowres = {'start_idx': start_idx_lowres, 'end_idx': end_idx_lowres}
+    time_idx_range_highres = {'start_idx': start_idx_highres, 'end_idx': end_idx_highres}
+    print(f"Start index lowres target: {start_idx_lowres}, End index: {end_idx_lowres}")
+    print(f"Start index highres target: {start_idx_highres}, End index: {end_idx_highres}")
+
+
+    start_idx_test, end_idx_test = [], []
+    all_times_target = []
+    for i in range(len(start_date_all_lowres)):
+        all_times_target_i = get_time_range.generate_time_series(start_date_target[i], end_date_target[i], step_hours)
+        start_idx_test_i,  end_idx_test_i  = get_time_range.get_time_indices(all_times_target_i, start_date_test[i], end_date_test[i])
+        start_idx_test.append(start_idx_test_i)
+        end_idx_test.append(end_idx_test_i)
+        all_times_target.append(all_times_target_i)
+        print(f"Start time test: {all_times_target_i[start_idx_test_i]}, End time: {all_times_target_i[end_idx_test_i]}")
+        print('len all_times_target_i', len(all_times_target_i))
+        if i > 0:
+            start_idx_test[i] += len(all_times_target[i-1]) -1 
+            end_idx_test[i]   += len(all_times_target[i-1]) -1 
+    time_idx_range_test = {'start_idx': start_idx_test, 'end_idx': end_idx_test}
+    print(f"Start index test: {start_idx_test}, End index: {end_idx_test}")
+    TEST_SIZE = time_idx_range_test
 
     '''
     preproc = preprocess.PreProcess()
@@ -99,20 +157,24 @@ def main():
     dataset_train, dataset_test, X_train, X_test, y_train, y_test = preproc.split_data(var_lr_filtered, var_hr_scaled, BATCH_SIZE)
     '''
     # reading data
-    #readin = read.Read('netcdf')
-    #var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
-    #var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
     with tf.device("CPU"):
         # https://stackoverflow.com/questions/72122939/resourceexhaustederror-graph-execution-error-when-trying-to-train-tensorflow
         readin = read.Read('netcdf')
-        var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
-        var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
+        if file_x_mode == 'one_var_per_file': 
+            var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
+        elif file_x_mode == 'multivar_singlefile': 
+            var_low_res_dict = readin.read_netcdf_multivar_singlefile(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
+
+        if file_y_mode == 'one_var_per_file': 
+            var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter['file_y'], time_idx_range_highres)
+        elif file_y_mode == 'multivar_singlefile': 
+            var_high_res_dict = readin.read_netcdf_multivar_singlefile(dir_high_res, varname_predictand_high_res,  file_filter['file_y'], time_idx_range_highres)
 
     # constant fields (eg, orography)
     var_const_high_res_dict = {}
     if len(varname_const) > 0:
         #preproc = preprocess.PreProcess()
-        var_const_dict = readin.read_netcdf(dir_const, varname_const, file_filter_const)
+        var_const_dict = readin.read_netcdf_one_var_per_file(dir_const, varname_const, file_filter['file_const'])
         nt, nx, ny = np.shape(var_high_res_dict[varname_predictand_high_res[0]])
         for key, values in var_const_dict.items():
             var_const_add_time = np.repeat(values[None, :, :], nt, axis=0)
@@ -204,40 +266,46 @@ def main():
     postproc.plot_result(y_test, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
 
     
+    if TRAINING_MODE == True:
+        if num_gpus <= 1:
 
-    if num_gpus <= 1:
-
-        # training
-        trainmodel = train.TrainModel(wdir)
-        generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
-            SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
-            METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
-            dataset_train, dataset_valid)
-
-    elif num_gpus > 1:
-
-        #tf.debugging.set_log_device_placement(True)
-        strategy = gpus_func.get_strategy()
-
-        #strategy.reduce(tf.distribute.ReduceOp.SUM, tensor, axis=None)
-        print(f"Number of GPUs Available: {strategy.num_replicas_in_sync}")
-
-        with strategy.scope():
             # training
             trainmodel = train.TrainModel(wdir)
             generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
                 SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                 METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                 dataset_train, dataset_valid)
-    """
-    trainmodel = train.TrainModel(wdir)
-    generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS, 
-        SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
-        METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
-        dataset_train, dataset_valid)
-    """
 
-    y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
+        elif num_gpus > 1:
+
+            #tf.debugging.set_log_device_placement(True)
+            strategy = gpus_func.get_strategy()
+
+            #strategy.reduce(tf.distribute.ReduceOp.SUM, tensor, axis=None)
+            print(f"Number of GPUs Available: {strategy.num_replicas_in_sync}")
+
+            with strategy.scope():
+                # training
+                trainmodel = train.TrainModel(wdir)
+                generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
+                    SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+                    METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
+                    dataset_train, dataset_valid)
+        """
+        trainmodel = train.TrainModel(wdir)
+        generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS, 
+            SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
+            METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
+            dataset_train, dataset_valid)
+        """
+    else:
+
+        generator = tf.keras.models.load_model(PRETRAINED_GENERATOR)
+
+    if PREDICTION_MODE == True:
+        trainmodel = train.TrainModel(wdir)
+        y_pred = trainmodel.prediction(generator, X_test, const_test, y_test, BATCH_SIZE)
+
 
     """
     # Step 4: Get generator output
@@ -307,7 +375,10 @@ def main():
                         residue_time_high_res, TEST_SIZE, residue_geo_dict, var_to_write_ytest_inverse)
 
     filewriter_x = file_writer.FileWriter(wdir + '/' + 'predictor.nc')
-    nc_files_to_read_x = glob.glob(dir_low_res +  '/' + varname_predictor_low_res[0] + '/' + '*')
+    if file_x_mode == 'one_var_per_file': 
+        nc_files_to_read_x = glob.glob(dir_low_res +  '/' + varname_predictor_low_res[0] + '/' + '*')
+    elif file_x_mode == 'multivar_singlefile': 
+        nc_files_to_read_x = glob.glob(dir_low_res +  '/' + '*' + file_filter['file_x'] + '*.nc')
     #filewriter_x.Write_NC(glob.glob(dir_low_res + varname_predictor_low_res[0] + '*')[0], \
     nc_files_to_read_x.sort()
     print('low res file', nc_files_to_read_x[0])

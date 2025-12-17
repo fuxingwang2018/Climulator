@@ -76,8 +76,8 @@ def main():
     '''
     # reading data
     readin = read.Read('netcdf')
-    var_low_res_dict = readin.read_netcdf(dir_low_res, varname_predictor_low_res,  file_filter)
-    var_high_res_dict = readin.read_netcdf(dir_high_res, varname_predictand_high_res, file_filter)
+    var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter)
+    var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter)
 
     # constant fields (eg, orography)
     nt, nx, ny = np.shape(var_high_res_dict[varname_predictand_high_res[0]])

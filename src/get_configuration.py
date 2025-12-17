@@ -32,6 +32,7 @@ def get_settings(config_file):
         'variables': conf_dict['SETTINGS']['variables'],
         #'regions': conf_dict['SETTINGS']['regions'],
         'coordinates_of_detection_area': conf_dict['SETTINGS']['coordinates_of_detection_area'], 
+        'time_range': conf_dict['SETTINGS']['time_range'], 
         'requested_stats': conf_dict['STATISTICS']['stats'],
         'stats_conf': mod_stats_config(conf_dict['STATISTICS']['stats']),
         'validation plot': conf_dict['PLOTTING']['validation plot'],
@@ -47,7 +48,6 @@ def get_settings(config_file):
         'path_x': conf_dict['SETTINGS']['path_x'],
         'path_y': conf_dict['SETTINGS']['path_y'],
         'file_filter': conf_dict['SETTINGS']['file_filter'],
-        'file_filter_const': conf_dict['SETTINGS']['file_filter_const'],
         'experiment_name': conf_dict['SETTINGS']['experiment_name'],
     }
 
@@ -82,7 +82,11 @@ def default_stats_config(stats):
             'DATA_AUGMENTATION':False, 
             'USE_SEED':False, 
             'DISABLE_PARALLEL':False, 
-            'ENFORCE_DETERMINISM':False} 
+            'ENFORCE_DETERMINISM':False},
+        'RUNNING_MODE': {
+            'TRAINING_MODE': True, 
+            'PREDICTION_MODE': True, 
+            'PRETRAINED_GENERATOR': ''},
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 
