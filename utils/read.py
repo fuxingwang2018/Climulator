@@ -81,6 +81,7 @@ class Read(object):
             #if var_data.ndim > 2:
             #    var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
             #else:
+            #var_data[var_data > 1e5] = np.nan
             var_dict[ivar] = var_data
 
             var_list_nc.append(ivar)
@@ -98,15 +99,16 @@ class Read(object):
 
     def read_netcdf_multivar_singlefile(self, dir_nc, var_list, file_filter, time_idx_range = {'start_idx':0, 'end_idx':0}):
 
-        nc_files_all = glob.glob(dir_nc + '/' + '*')
-        nc_files_all.sort()
-        print('dir_nc:', dir_nc)
-        print('All NetCDF files:', len(nc_files_all), nc_files_all)
+        print('dir_nc =', dir_nc)
         nc_files_list = []
-        for ifile in nc_files_all:
-            #if varname in ifile and file_filter in ifile:
-            if file_filter in ifile:
-                nc_files_list.append(ifile)
+        for item in dir_nc:
+            nc_files_all = glob.glob(item + '/' + '*')
+            nc_files_all.sort()
+            print('All NetCDF files:', len(nc_files_all), nc_files_all)
+            for ifile in nc_files_all:
+                #if varname in ifile and file_filter in ifile:
+                if file_filter in ifile:
+                    nc_files_list.append(ifile)
         print('NetCDF files to read:', len(nc_files_list), nc_files_list)
 
         var_dict = {}
@@ -115,20 +117,39 @@ class Read(object):
             icount = 0
             for ifile in nc_files_list:
                 data = netCDF4.Dataset(ifile)
-                #var = list(data.variables.keys())[-1]
-                if icount == 0:
-                    var_data = np.array(data.variables[ivar])
+                ##var = list(data.variables.keys())[-1]
+                #if icount == 0:
+                #    var_data = np.array(data.variables[ivar])
+                #else:
+                #    var_data_ifile = np.array(data.variables[ivar])
+                #    var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
+
+
+                var_data_ifile = np.array(data.variables[ivar])
+                if var_data_ifile.ndim > 2:
+                    var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
                 else:
-                    var_data_ifile = np.array(data.variables[ivar])
-                    var_data = np.concatenate((var_data, var_data_ifile), axis = 0)
+                    var_data_ifile_cut = var_data_ifile
+
+                if icount == 0:
+                    #var_data = np.array(data.variables[ivar])
+                    var_data = var_data_ifile_cut
+                else:
+                    if var_data_ifile.ndim > 2:
+                        #var_data_ifile = np.array(data.variables[ivar])
+                        var_data = np.concatenate((var_data, var_data_ifile_cut), axis = 0)
+                    else:
+                        #var_data = np.stack([var_data, var_data_ifile_cut], axis = 0)
+                        var_data = var_data_ifile_cut
                 icount += 1
                 data.close()
 
-            if var_data.ndim > 2:
-                var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
-            else:
-                var_dict[ivar] = var_data
+            #if var_data.ndim > 2:
+            #    var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
+            #else:
+            #    var_dict[ivar] = var_data
             var_list_nc.append(ivar)
+            var_dict[ivar] = var_data
 
         print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)

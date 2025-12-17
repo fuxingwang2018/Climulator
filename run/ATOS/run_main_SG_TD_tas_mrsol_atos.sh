@@ -1,8 +1,7 @@
 #!/bin/bash 
 ###SBATCH -N 2
-###SBATCH -t 01:00:00 
-###SBATCH -t 3:00:00 
-#SBATCH -J SGTDtp 
+#SBATCH -t 03:00:00 
+#SBATCH -J SGTDtm 
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -10,17 +9,15 @@
 #SBATCH --qos=ng
 ###SBATCH --qos=np
 #SBATCH --mem-per-cpu=4G
-###SBATCH --ntasks=8
-###SBATCH --cpus-per-task=8
 #SBATCH --ntasks=8
 #SBATCH --cpus-per-task=8
 
 #DOMAIN='EmiliaRomagna'
 DOMAIN='TestDomain'
-VARIABLE='tas_pr'
+VARIABLE='tas_mrsol'
 #export CUDA_VISIBLE_DEVICES=1 
 
-echo 'domain is' ${DOMAIN}
+echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
 #ecinteractive -g
 module load netcdf4/4.9.2
 #module load python3/new
@@ -33,7 +30,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

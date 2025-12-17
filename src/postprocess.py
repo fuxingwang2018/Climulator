@@ -14,57 +14,57 @@ class PostProcess(object):
 
     def plot_result(self, y_pred, X_test, y_test, path_figure, X_name, y_name):
 
-        n = 15 #50
+        n = [15, 50]
         nt_Xtest, nx_Xtest, ny_Xtest, nv_Xtest = np.shape(X_test)
-
-        var_p = y_pred[n, :, :, 0]
-        var_ref = y_test[n, :, :, 0]
-        #var_in = X_test[n, :, :, -1]
-
         nrow, ncol = 3, (nv_Xtest + 2)//3 + 1 
-        fig, ax = plt.subplots(nrow, ncol, figsize = (12, 8))
-        ax = ax.flatten()
 
-        for ivar in range(nv_Xtest):
-            ax[ivar].imshow(X_test[n, :, :, ivar])
-            ax[ivar].set_title('LR: ' + X_name[ivar])
+        for i_step in n:
 
-        ax[nv_Xtest].imshow(var_p)
-        ax[nv_Xtest].set_title('Pred: ' + y_name[0]) 
+            var_p = y_pred[i_step, :, :, 0]
+            var_ref = y_test[i_step, :, :, 0]
+            #var_in = X_test[i, :, :, -1]
 
-        ax[nv_Xtest + 1].imshow(var_ref)
-        ax[nv_Xtest + 1].set_title('Ref: ' + y_name[0]) 
+            fig, ax = plt.subplots(nrow, ncol, figsize = (12, 8))
+            ax = ax.flatten()
+
+            for ivar in range(nv_Xtest):
+                ax[ivar].imshow(X_test[i_step, :, :, ivar])
+                ax[ivar].set_title('LR: ' + X_name[ivar])
+
+            ax[nv_Xtest].imshow(var_ref)
+            ax[nv_Xtest].set_title('Ref: ' + y_name[0]) 
+
+            ax[nv_Xtest + 1].imshow(var_p)
+            ax[nv_Xtest + 1].set_title('Pred: ' + y_name[0]) 
          
-        """
-        ax[0].imshow(var_in)
-        ax[0].set_title('Input') 
-        """
+            fig.savefig(path_figure + f"SRGAN_result_step_{i_step}.png")
 
-        fig.savefig(path_figure + "SRGAN_result.png")
         print('plot_result Done')
-
+ 
 
     def plot_input_data(self, var_low_res_dict, var_high_res_dict, path_figure):
 
-        n = 16 #2000
+        n = [15, 200]
         nvar_low_res, nvar_high_res  = len(var_low_res_dict), len(var_high_res_dict)
         nvar = nvar_low_res + nvar_high_res
         nrow, ncol = 3, nvar//3 + 1 #max(nvar_high_res, nvar_low_res)
-        fig, ax = plt.subplots(nrow, ncol, figsize = (12, 8))
-        ax = ax.flatten()
 
-        i = 0
-        for var_low_res_key, var_low_res_values in var_low_res_dict.items():
-            ax[i].imshow(var_low_res_values[n, ])
-            ax[i].set_title('LR: ' + str(var_low_res_key)) 
-            i += 1
+        for i_step in n:
+            fig, ax = plt.subplots(nrow, ncol, figsize = (12, 8))
+            ax = ax.flatten()
 
-        for var_high_res_key, var_high_res_values in var_high_res_dict.items():
-            ax[i].imshow(var_high_res_values[n, ])
-            ax[i].set_title('HR: ' + str(var_high_res_key)) 
-            i += 1
+            i = 0
+            for var_low_res_key, var_low_res_values in var_low_res_dict.items():
+                ax[i].imshow(var_low_res_values[i_step, ])
+                ax[i].set_title('LR: ' + str(var_low_res_key)) 
+                i += 1
+
+            for var_high_res_key, var_high_res_values in var_high_res_dict.items():
+                ax[i].imshow(var_high_res_values[i_step, ])
+                ax[i].set_title('HR: ' + str(var_high_res_key)) 
+                i += 1
             
-        fig.savefig(path_figure + "SRGAN_input.png")
+            fig.savefig(path_figure + f"SRGAN_input_step_{i_step}.png")
         print('plot_input_data Done')
 
 

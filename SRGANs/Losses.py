@@ -130,7 +130,7 @@ def discriminator_loss(real_Y, fake_Y):
     return total_loss
 
 
-def generator_loss(fake_Y, hr_predic, hr_target):
+def generator_loss_default(fake_Y, hr_predic, hr_target):
 
     # Define loss function with correct reduction
     num_gpus = gpus_func.get_num_gpus()
@@ -156,3 +156,75 @@ def generator_loss(fake_Y, hr_predic, hr_target):
 
     #print(' content_loss.dtype, adversarial_loss.dtype:', content_loss.dtype, adversarial_loss.dtype) 
     return content_loss + weight_content_adversarial*adversarial_loss
+
+
+def generator_loss(fake_Y, hr_predic, hr_target):
+
+    lambda_corr = 0.1 #default 0.1; tune from 0.05 to 0.5
+    num_gpus = gpus_func.get_num_gpus()
+    if num_gpus <= 1:
+        cross_entropy = losses.BinaryCrossentropy()
+    else:
+        cross_entropy = tf.keras.losses.BinaryCrossentropy(
+            reduction=tf.keras.losses.Reduction.NONE
+        )
+
+    adversarial_loss = cross_entropy(
+        tf.ones(fake_Y.shape) - tf.random.uniform(fake_Y.shape) * weight_cross_entropy,
+        fake_Y
+    )
+
+    content_loss = losses.MSE(hr_target, hr_predic)
+
+    # NEW: correlation preservation loss
+    corr_loss = correlation_loss(hr_predic, hr_target)
+
+    if num_gpus > 1:
+        strategy = gpus_func.get_strategy()
+        global_batch_size = tf.shape(fake_Y)[0] * strategy.num_replicas_in_sync
+        content_loss = tf.reduce_sum(content_loss) / tf.cast(global_batch_size, tf.float32)
+        adversarial_loss = tf.reduce_sum(adversarial_loss) / tf.cast(global_batch_size, tf.float32)
+
+    return (
+        content_loss
+        + weight_content_adversarial * adversarial_loss
+        + lambda_corr * corr_loss
+    )
+
+def correlation_loss(hr_predic, hr_target, eps=1e-6):
+    """
+    Computes correlation loss between the two output channels
+    using pure TensorFlow (no tfp).
+    """
+    # Flatten spatial dims: [batch, H*W, 2]
+    pred = tf.reshape(hr_predic, [tf.shape(hr_predic)[0], -1, 2])
+    true = tf.reshape(hr_target, [tf.shape(hr_target)[0], -1, 2])
+
+    def corr(a):
+        """
+        Pearson correlation between channel 0 and channel 1.
+        a shape: [N,2]
+        """
+        x = a[:, 0]
+        y = a[:, 1]
+
+        x_mean = tf.reduce_mean(x)
+        y_mean = tf.reduce_mean(y)
+
+        xm = x - x_mean
+        ym = y - y_mean
+
+        numerator = tf.reduce_sum(xm * ym)
+        denominator = tf.sqrt(tf.reduce_sum(tf.square(xm)) * tf.reduce_sum(tf.square(ym)) + eps)
+
+        return numerator / (denominator + eps)
+
+    # Compute correlation difference for each sample
+    batch_corr_loss = tf.map_fn(
+        lambda xy: tf.abs(corr(xy[0]) - corr(xy[1])),
+        (pred, true),
+        dtype=tf.float32
+    )
+
+    return tf.reduce_mean(batch_corr_loss)
+

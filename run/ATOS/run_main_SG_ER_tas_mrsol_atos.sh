@@ -1,24 +1,32 @@
 #!/bin/bash 
-#SBATCH -N 1
-###SBATCH --nodes 1
-###SBATCH -t 03:00:00 
+###SBATCH -N 1
+#SBATCH --nodes 1
+#SBATCH -t 09:00:00 
 
 #SBATCH -J SGERtm
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH --gpus=1
+###SBATCH --gpus=1
 #SBATCH --qos=ng
-#SBATCH --mem-per-gpu=450G
+###SBATCH --mem-per-gpu=450G
 
-###SBATCH --mem=480G
+#SBATCH --ntasks-per-node=4
+#SBATCH --gpus-per-node=4
+#SBATCH --cpus-per-task=32
+###SBATCH --mem=80G
+
+
+#SBATCH --mem=460G
 ###SBATCH --ntasks=512
-###SBATCH --cpus-per-task=2
-###SBATCH --ntasks-per-node=16
-#128
+###SBATCH --cpus-per-task=32
+###2
+###SBATCH --ntasks-per-node=1
+###128 #16
+###SBATCH --mem-per-cpu=16G
 ###SBATCH --hint=nomultithread
 ###SBATCH -account=spselind
-#SBATCH -A spselind
+###SBATCH -A spselind
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
@@ -41,7 +49,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

@@ -57,7 +57,7 @@ class PreProcess(object):
         return scaler, var
 
 
-    def scale_dict(self, var_dict_in):
+    def scale_dict(self, var_dict_in, method):
 
         """
         Scale data to same magnitude 
@@ -71,7 +71,7 @@ class PreProcess(object):
         var_dict_out = {}
         for key, values in var_dict_in.items():
             #print(type(values), values.shape)
-            var_dict_out[key] = self.scale_var(values)
+            var_dict_out[key] = self.scale_var(values, method)
             print('scale key:', key)
 
         return var_dict_out
@@ -252,10 +252,10 @@ class PreProcess(object):
             residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict
 
 
-    def scale_var(self, var_origin):
+    def scale_var_old(self, var_origin, method):
 
         """
-        Scale data to same magnitude
+        Scale data (along time axis) to same magnitude, first along time axis, if all 0, scale it along space
 
         :param var_before_scale: input variable to scale 
         :type var_before_scale: array
@@ -266,9 +266,21 @@ class PreProcess(object):
         shape = var_origin.shape
         var = var_origin.reshape((shape[0], -1))
 
-        scaler = MinMaxScaler()
-        var_scaled = scaler.fit_transform(var)
-        var_scaled = var_scaled.reshape(shape)
+        if method == 'scale_over_time':
+            scaler = MinMaxScaler()
+            var_scaled = scaler.fit_transform(var)
+            var_scaled = var_scaled.reshape(shape)
+
+        elif method == 'scale_over_space':
+        #all_equal = np.all(var_scaled == var_scaled[0])
+        #if all_equal:
+            #mask = var < threshold 
+            var_T = np.transpose(var)
+            scaler = MinMaxScaler()
+            var_scaled_T = scaler.fit_transform(var_T)
+            var_scaled = np.transpose(var_scaled_T)
+            var_scaled = var_scaled.reshape(shape)
+
 
         #scaler, var_before_scale = self.scale(scaler, var_before_scale)
         print('var_origin', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
@@ -284,6 +296,179 @@ class PreProcess(object):
         #varout = varout[:, :, 1:-1]  # for 3km, why?
 
         return var_scaled
+
+    """
+    def scale_var(self, var_origin, method):
+
+        #Scale data (along time axis) to same magnitude, first along time axis, if all 0, scale it along space
+
+        #:param var_before_scale: input variable to scale
+        #:type var_before_scale: array
+        #:return: scaled variable, var_scaled
+        #:rtype: array
+
+        # --- Constants ---
+        # Define the threshold for treating a value as "missing" or an outlier
+        MISSING_VALUE_THRESHOLD = 1e10
+
+        shape = var_origin.shape
+        # Reshape to (time_steps, total_pixels)
+        var = var_origin.reshape((shape[0], -1))
+        var_scaled = np.zeros_like(var) # Initialize scaled array
+
+        if method == 'scale_over_time':
+            # Scaling along the time axis (for each pixel)
+            scaler = MinMaxScaler()
+            var_scaled = scaler.fit_transform(var)
+            var_scaled = var_scaled.reshape(shape)
+
+        elif method == 'scale_over_space':
+            # Scaling along the space axis (for each time step)
+
+            # --- Missing Value Handling ---
+            # 1. Create a mask: True for valid data (less than threshold)
+            mask = var < MISSING_VALUE_THRESHOLD
+
+            # 2. Transpose for scaling over space (total_pixels, time_steps)
+            var_T = np.transpose(var)
+
+            # 3. Initialize the scaled result array
+            var_scaled_T = np.zeros_like(var_T)
+
+            # Iterate through each time step (row in var_T)
+            for i in range(var_T.shape[0]):
+                time_step_data = var_T[i, :] # Data for one time step across all space
+                time_step_mask = mask[i, :]   # Mask for one time step
+
+                valid_data = time_step_data[time_step_mask]
+
+                if valid_data.size > 0:
+                    scaler = MinMaxScaler()
+                    # Reshape for scaler (num_valid_pixels, 1)
+                    valid_data_scaled = scaler.fit_transform(valid_data.reshape(-1, 1))
+
+                    # Put the scaled values back into the correct positions
+                    scaled_step = np.zeros_like(time_step_data, dtype=float)
+                    scaled_step[time_step_mask] = valid_data_scaled.flatten()
+
+                    # Replace non-valid data with its original value
+                    scaled_step[~time_step_mask] = time_step_data[~time_step_mask]
+
+                    var_scaled_T[i, :] = scaled_step
+                else:
+                    # If all data is missing/outlier, keep original values
+                    var_scaled_T[i, :] = time_step_data
+
+            var_scaled = np.transpose(var_scaled_T)
+            var_scaled = var_scaled.reshape(shape)
+
+        elif method == 'global_scaling':
+            # --- New Option: Scaling over all dimensions (time and space) ---
+
+            # 1. Create a mask for valid data across all pixels
+            mask_flat = var.flatten() < MISSING_VALUE_THRESHOLD
+
+            # 2. Extract valid data for global scaling
+            valid_data_flat = var.flatten()[mask_flat]
+
+            if valid_data_flat.size > 0:
+                scaler = MinMaxScaler()
+                # Reshape for scaler (num_valid_pixels, 1)
+                valid_data_scaled = scaler.fit_transform(valid_data_flat.reshape(-1, 1))
+
+                # 3. Put the scaled values back into the correct positions
+                var_scaled_flat = np.zeros_like(var.flatten(), dtype=float)
+                var_scaled_flat[mask_flat] = valid_data_scaled.flatten()
+
+                # 4. Replace non-valid data with its original value
+                var_scaled_flat[~mask_flat] = var.flatten()[~mask_flat]
+
+                var_scaled = var_scaled_flat.reshape(shape)
+            else:
+                # If all data is missing/outlier, keep original values
+                var_scaled = var_origin
+
+        else:
+            print(f"Error: Unknown scaling method: {method}")
+            return var_origin # Return original array on error
+
+        # --- Logging/Return (Original End of Function) ---
+        print('var_origin', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
+        print('var_scaled', var_scaled.shape, np.nanmin(var_scaled), np.nanmax(var_scaled))
+
+        return var_scaled
+    """
+
+
+    def scale_var(self, var_origin, method):
+
+        """
+        Scale data using MinMaxScaler.
+
+        method options:
+            - 'scale_over_time'
+            - 'scale_over_space'
+            - 'global_scaling' (new)
+
+        Missing values (>1e10) are treated as NaN and left as 0 after scaling.
+        """
+
+        shape = var_origin.shape
+        var = var_origin.copy().reshape((shape[0], -1))
+
+        # Convert missing values to NaN
+        var = np.where(var > 1e10, np.nan, var)
+
+        if method == 'scale_over_time':
+
+            scaler = MinMaxScaler()
+            var_scaled = np.zeros_like(var)
+
+            for i in range(var.shape[1]):          # loop over grid cells
+                col = var[:, i]
+                mask = ~np.isnan(col)
+                if np.any(mask):
+                    var_scaled[mask, i] = scaler.fit_transform(col[mask, None]).ravel()
+                else:
+                    var_scaled[:, i] = 0           # no valid data
+
+            var_scaled = var_scaled.reshape(shape)
+
+        elif method == 'scale_over_space':
+
+            scaler = MinMaxScaler()
+            var_T = var.T                          # shape: (space, time)
+            var_scaled_T = np.zeros_like(var_T)
+
+            for i in range(var_T.shape[0]):        # loop over each grid cell across time
+                row = var_T[i]
+                mask = ~np.isnan(row)
+                if np.any(mask):
+                    var_scaled_T[i, mask] = scaler.fit_transform(row[mask, None]).ravel()
+                else:
+                    var_scaled_T[i] = 0            # all missing
+
+            var_scaled = var_scaled_T.T.reshape(shape)
+
+        elif method == 'scale_global':
+
+            scaler = MinMaxScaler()
+            flat = var.flatten()
+            mask = ~np.isnan(flat)
+
+            flat_scaled = np.zeros_like(flat)
+            flat_scaled[mask] = scaler.fit_transform(flat[mask, None]).ravel()
+
+            var_scaled = flat_scaled.reshape(shape)
+
+        else:
+            raise ValueError(f"Unknown scaling method: {method}")
+
+        print('var_origin', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
+        print('var_scaled', var_scaled.shape, np.nanmin(var_scaled), np.nanmax(var_scaled))
+
+        return var_scaled
+
 
 
     def inverse_var(self, var_origin, var_ref_to_fit):

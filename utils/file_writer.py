@@ -65,7 +65,8 @@ class FileWriter(object):
 
     """
 
-    def Write_NC(self, nc_file_2D, nc_var_to_read, nc_vars_to_write, time_offset, time_length, geo_offset, var_2D_dict):
+    #def Write_NC(self, nc_file_2D, nc_var_to_read, nc_vars_to_write, time_offset, time_length, geo_offset, var_2D_dict):
+    def Write_NC(self, nc_file_2D, nc_vars_to_write, time_offset, time_length, geo_offset, var_2D_dict):
 
         nam_lon = 'lon'
         nam_lat = 'lat'
@@ -73,7 +74,11 @@ class FileWriter(object):
         #
         # Read 2D netcdf file
         #
-        nc_file_2D_id = Dataset(nc_file_2D, 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
+        if isinstance(nc_file_2D, dict):
+            nc_file_2D_id = Dataset(nc_file_2D[nc_vars_to_write[0]], 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
+        else:
+            nc_file_2D_id = Dataset(nc_file_2D, 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
+
         nc_attrs_2d, nc_dims_2d, nc_vars_2d = nd.ncdump(nc_file_2D_id)
 
         print('nc_file_2D:', nc_file_2D)
@@ -157,9 +162,11 @@ class FileWriter(object):
                  ('time', 'y', 'x'), fill_value=-9999.9) 	
 
                 # Attributes:
-                for ncattr in nc_file_2D_id.variables[nc_var_to_read].ncattrs():
+                if isinstance(nc_file_2D, dict):
+                    nc_file_2D_id = Dataset(nc_file_2D[var], 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
+                for ncattr in nc_file_2D_id.variables[var].ncattrs():
                     if str(ncattr) != '_FillValue':
-                        data_var[var].setncattr(ncattr, nc_file_2D_id.variables[nc_var_to_read].getncattr(ncattr))
+                        data_var[var].setncattr(ncattr, nc_file_2D_id.variables[var].getncattr(ncattr))
 
                 # Assign values to variables
                 #print ('shape of var_2D, min, max', var, var_2D_dict[var].shape, np.nanmin(var_2D_dict[var]), np.nanmax(var_2D_dict[var]))

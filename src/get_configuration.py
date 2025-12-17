@@ -87,6 +87,8 @@ def default_stats_config(stats):
             'TRAINING_MODE': True, 
             'PREDICTION_MODE': True, 
             'PRETRAINED_GENERATOR': ''},
+        'PREPROCESS': {
+            'SCALE_METHOD': 'scale_space'}, 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 
