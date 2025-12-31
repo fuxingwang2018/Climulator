@@ -2,20 +2,29 @@
 
 #SBATCH -N 1
 #SBATCH -t 3:00:00
-#SBATCH -J Sel12km
+#SBATCH -J SelNorCP
 #SBATCH -e slurm_error.txt
 #SBATCH -o slurm_output.txt
+#SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log_stats/
+#SBATCH --error=%x-%j.error 
+#SBATCH --output=%x-%j.out
+###SBATCH --qos=low
+#SBATCH -A rossby
 
-EXP='NorCP3'
+
+EXP='NorCP12'
 #EXP='NorCP3'
 FIRST_MONTH=01
 LAST_MONTH=12
-GCM="ECMWF-ERAINT" 
+#GCM="ECMWF-ERAINT" 
 #GCM="ICHEC-EC-EARTH_HIST" 
 #GCM="ICHEC-EC-EARTH_RCP85_MC"
 #GCM="ICHEC-EC-EARTH_RCP85_LC"
-#GCM="ICHEC-EC-EARTH_RCP45_MC"
+GCM="ICHEC-EC-EARTH_RCP45_MC"
 #GCM="ICHEC-EC-EARTH_RCP45_LC"
+
+connect_date_in='-'
+connect_date_out='-'
 
 if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
     FIRST_YEAR=1998 # 1997 available, but one-year spinup
@@ -52,14 +61,14 @@ if [[ "$EXP" == "NorCP12" ]]; then
         experiment='NEU-12_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
     fi
     experiment_cmorized='12km'
-    freq_in='6hr' #1hr for tas, pr; 3hr for ta500..1000, hus500..1000, ua500..1000, va500..1000; 6hr for zg500..1000
+    freq_in='1hr' #1hr for tas, pr; 3hr for ta500..1000, hus500..1000, ua500..1000, va500..1000; 6hr for zg500..1000
     freq_out='6hr' # 3hr, 6hr
-    VAR_LIST=('tas') # pr, tas
+    VAR_LIST=('pr') # pr, tas
     #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' 'ta1000' \
     #	'hus500' 'hus700' 'hus850' 'hus950' 'hus1000' \
     #	'ua500' 'ua700' 'ua850' 'ua950' 'ua1000' \
     #	'va500' 'va700' 'va850' 'va950' 'va1000' )
-    VAR_LIST=('zg500' 'zg700' 'zg850' 'zg950' 'zg1000')
+    #VAR_LIST=('zg500' 'zg700' 'zg850' 'zg950' 'zg1000')
 
 elif [[ "$EXP" == "NorCP3" ]]; then 
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
@@ -80,6 +89,7 @@ elif [[ "$EXP" == "NorCP3" ]]; then
     elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP45_MC" ]]; then
         indir0='/nobackup/rossby24/proj/rossby/joint_exp/norcp/netcdf/NorCP_AROME_ECE_ALADIN_RCP45_2040_2060/'
         experiment='NEU-3_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-AROME_x2yn2v1'
+        #connect_date_in='_' # for pr
     fi
     experiment_cmorized='3km'
     freq_in='1hr'
@@ -165,9 +175,9 @@ for ivar in ${VAR_LIST[@]} ; do
     if [ ! -e ${outdir} ] ; then
         mkdir -p ${outdir}
     fi
-    infile=${ivar}_${experiment}_${freq_in}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_IN}'-'${yy}${LAST_MONTH}${LAST_DAYHHMM_IN}'.nc' 
-    outfile_smalldomain=${ivar}_${experiment}_${freq_in}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_IN}'-'${yy}${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
-    outfile_newfreq=${ivar}_${experiment}_${freq_out}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}'-'${yy}${LAST_MONTH}${LAST_DAYHHMM_OUT}'_smalldomain.nc'
+    infile=${ivar}_${experiment}_${freq_in}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_IN}${connect_date_in}${yy}${LAST_MONTH}${LAST_DAYHHMM_IN}'.nc' 
+    outfile_smalldomain=${ivar}_${experiment}_${freq_in}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_IN}${connect_date_out}${yy}${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
+    outfile_newfreq=${ivar}_${experiment}_${freq_out}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}${yy}${LAST_MONTH}${LAST_DAYHHMM_OUT}'_smalldomain.nc'
 
     cdo sellonlatbox,$lonmin,$lonmax,$latmin,$latmax $indir/$infile $outdir/$outfile_smalldomain
 
@@ -175,7 +185,7 @@ for ivar in ${VAR_LIST[@]} ; do
         if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
             cdo timselmean,3 $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         else
-            #cdo select,timestep=$(seq 1 3 8808 | shuf | tr '\n' ',' | sed '$s/,$/\n/') tas_12km_1hr_200001010000-200912312300.nc tas_12km_3hr_200001010000-200912312300.nc
+            #cdo select,timestep=$(seq 1 3 8808 | shuf | tr '\n' ',' | sed '$s/,$/\n/') tas_12km_1hr_200001010000${connect_date_out}200912312300.nc tas_12km_3hr_200001010000${connect_date_out}200912312300.nc
             cdo select,timestep=$(seq 1 3 8808 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         fi
     elif [[ "$freq_in" == "1hr" ]] && [[ "$freq_out" == "6hr" ]] ; then
@@ -197,16 +207,16 @@ for ivar in ${VAR_LIST[@]} ; do
   done #yy
 
   # Merge nc files
-  outfile_all=${ivar}_${experiment}_${freq_out}_*${FIRST_MONTH}${FIRST_DAYHHMM_OUT}'-'*${LAST_MONTH}${LAST_DAYHHMM_OUT}'_smalldomain.nc'
-  outfile_merge=${ivar}_${experiment}_${freq_out}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}'-'${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
-  outfile_merge_cmorized=${ivar}_${experiment_cmorized}_${freq_out}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}'-'${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
-  outfile_month=${ivar}_${experiment_cmorized}_${freq_out}_${NAMEMONTH}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}'-'${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
+  outfile_all=${ivar}_${experiment}_${freq_out}_*${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}*${LAST_MONTH}${LAST_DAYHHMM_OUT}'_smalldomain.nc'
+  outfile_merge=${ivar}_${experiment}_${freq_out}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
+  outfile_merge_cmorized=${ivar}_${experiment_cmorized}_${freq_out}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
+  outfile_month=${ivar}_${experiment_cmorized}_${freq_out}_${NAMEMONTH}_${FIRST_YEAR}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}${LAST_YEAR}${LAST_MONTH}${LAST_DAYHHMM_OUT}'.nc'
   if [ -f $outdir/$outfile_merge ]; then
     rm  $outdir/$outfile_merge
   fi
   cdo mergetime $outdir/$outfile_all $outdir/$outfile_merge 
   rm $outdir/$outfile_all 
-  rm $outdir/${ivar}_${experiment}_${freq_in}_*${FIRST_MONTH}${FIRST_DAYHHMM_IN}'-'*${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
+  rm $outdir/${ivar}_${experiment}_${freq_in}_*${FIRST_MONTH}${FIRST_DAYHHMM_IN}${connect_date_out}*${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
   mv $outdir/$outfile_merge  $outdir/$outfile_merge_cmorized
   cdo selmon,${SELMONTH} $outdir/$outfile_merge_cmorized $outdir/$outfile_month
 

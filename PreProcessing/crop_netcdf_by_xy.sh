@@ -6,9 +6,12 @@ EXP='NorCP'
 #DOMAIN="Emilia_Romagna"
 DOMAIN="NorCP_SSE"
 resolution="12km" #12km
-#GCM="ECMWF-ERAINT" #"ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
-GCM="ICHEC-EC-EARTH_HIST" #ECMWF-ERAINT
+#GCM="ECMWF-ERAINT" 
+#GCM="ICHEC-EC-EARTH_HIST" 
+#GCM="ICHEC-EC-EARTH_RCP85_MC"
 #GCM="ICHEC-EC-EARTH_RCP85_LC"
+GCM="ICHEC-EC-EARTH_RCP45_MC"
+#GCM="ICHEC-EC-EARTH_RCP45_LC"
 input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/original/"${GCM}"/"${resolution}
 output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/cropped/"${GCM}"/"${resolution}
 
