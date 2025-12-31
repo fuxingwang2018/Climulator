@@ -160,7 +160,7 @@ def generator_loss_default(fake_Y, hr_predic, hr_target):
 
 def generator_loss(fake_Y, hr_predic, hr_target):
 
-    lambda_corr = 0.1 #default 0.1; tune from 0.05 to 0.5
+    lambda_corr = 0.0 #default 0.1; tune from 0.05 to 0.5
     num_gpus = gpus_func.get_num_gpus()
     if num_gpus <= 1:
         cross_entropy = losses.BinaryCrossentropy()

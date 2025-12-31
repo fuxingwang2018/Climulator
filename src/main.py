@@ -50,7 +50,8 @@ def main():
 
     TRAINING_MODE = cdict['stats_conf']['RUNNING_MODE']['TRAINING_MODE']
     PREDICTION_MODE = cdict['stats_conf']['RUNNING_MODE']['PREDICTION_MODE']
-    PRETRAINED_GENERATOR = cdict['stats_conf']['RUNNING_MODE']['PRETRAINED_GENERATOR']
+    PRETRAINED_PATH = cdict['stats_conf']['RUNNING_MODE']['PRETRAINED_PATH']
+    PRETRAINED_GENERATOR = PRETRAINED_PATH + '/model_1_generator.h5'
 
     SCALE_METHOD = cdict['stats_conf']['PREPROCESS']['SCALE_METHOD']
 
@@ -115,23 +116,39 @@ def main():
     start_date_test, end_date_test = \
             cdict['time_range']['test']['start_date'], cdict['time_range']['test']['end_date']
 
-    start_idx_lowres, end_idx_lowres, start_idx_highres, end_idx_highres = [], [], [], []
+    start_idx_lowres_target, end_idx_lowres_target, start_idx_highres_target, end_idx_highres_target = [], [], [], []
+    start_idx_lowres_test, end_idx_lowres_test, start_idx_highres_test, end_idx_highres_test = [], [], [], []
 
     for i in range(len(start_date_all_lowres)):
         all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[i], end_date_all_lowres[i], step_hours)
         all_times_highres = get_time_range.generate_time_series(start_date_all_highres[i], end_date_all_highres[i], step_hours)
-        start_idx_lowres_i,  end_idx_lowres_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
-        start_idx_highres_i, end_idx_highres_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
-        start_idx_lowres.append(start_idx_lowres_i)
-        end_idx_lowres.append(end_idx_lowres_i)
-        start_idx_highres.append(start_idx_highres_i)
-        end_idx_highres.append(end_idx_highres_i)
-        print(f"Start time lowres all: {all_times_lowres[start_idx_lowres_i]}, End time: {all_times_lowres[end_idx_lowres_i]}")
-        print(f"Start time highres all: {all_times_highres[start_idx_highres_i]}, End time: {all_times_highres[end_idx_highres_i]}")
-    time_idx_range_lowres = {'start_idx': start_idx_lowres, 'end_idx': end_idx_lowres}
-    time_idx_range_highres = {'start_idx': start_idx_highres, 'end_idx': end_idx_highres}
-    print(f"Start index lowres target: {start_idx_lowres}, End index: {end_idx_lowres}")
-    print(f"Start index highres target: {start_idx_highres}, End index: {end_idx_highres}")
+
+        start_idx_lowres_target_i,  end_idx_lowres_target_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
+        start_idx_highres_target_i, end_idx_highres_target_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
+        start_idx_lowres_target.append(start_idx_lowres_target_i)
+        end_idx_lowres_target.append(end_idx_lowres_target_i)
+        start_idx_highres_target.append(start_idx_highres_target_i)
+        end_idx_highres_target.append(end_idx_highres_target_i)
+
+        start_idx_lowres_test_i,  end_idx_lowres_test_i  = get_time_range.get_time_indices(all_times_lowres, start_date_test[i], end_date_test[i])
+        start_idx_highres_test_i, end_idx_highres_test_i = get_time_range.get_time_indices(all_times_highres, start_date_test[i], end_date_test[i])
+        start_idx_lowres_test.append(start_idx_lowres_test_i)
+        end_idx_lowres_test.append(end_idx_lowres_test_i)
+        start_idx_highres_test.append(start_idx_highres_test_i)
+        end_idx_highres_test.append(end_idx_highres_test_i)
+        print(f"Start time lowres target_all: {all_times_lowres[start_idx_lowres_target_i]}, End time: {all_times_lowres[end_idx_lowres_target_i]}")
+        print(f"Start time highres target all: {all_times_highres[start_idx_highres_target_i]}, End time: {all_times_highres[end_idx_highres_target_i]}")
+        print(f"Start time lowres test_all: {all_times_lowres[start_idx_lowres_test_i]}, End time: {all_times_lowres[end_idx_lowres_test_i]}")
+        print(f"Start time highres test all: {all_times_highres[start_idx_highres_test_i]}, End time: {all_times_highres[end_idx_highres_test_i]}")
+
+    time_idx_range_lowres_target = {'start_idx': start_idx_lowres_target, 'end_idx': end_idx_lowres_target}
+    time_idx_range_highres_target = {'start_idx': start_idx_highres_target, 'end_idx': end_idx_highres_target}
+    time_idx_range_lowres_test = {'start_idx': start_idx_lowres_test, 'end_idx': end_idx_lowres_test}
+    time_idx_range_highres_test = {'start_idx': start_idx_highres_test, 'end_idx': end_idx_highres_test}
+    print(f"Start index lowres target: {start_idx_lowres_target}, End index: {end_idx_lowres_target}")
+    print(f"Start index highres target: {start_idx_highres_target}, End index: {end_idx_highres_target}")
+    print(f"Start index lowres test: {start_idx_lowres_test}, End index: {end_idx_lowres_test}")
+    print(f"Start index highres test: {start_idx_highres_test}, End index: {end_idx_highres_test}")
 
 
     start_idx_test, end_idx_test = [], []
@@ -149,9 +166,9 @@ def main():
             start_idx_test[i] += len(all_times_target[i-1]) -1 
             end_idx_test[i]   += len(all_times_target[i-1]) -1 
         TEST_SIZE.append(end_idx_test_i - start_idx_test_i)
-    time_idx_range_test = {'start_idx': start_idx_test, 'end_idx': end_idx_test}
+    time_idx_range_test_over_target = {'start_idx': start_idx_test, 'end_idx': end_idx_test}
     print(f"Start index test: {start_idx_test}, End index: {end_idx_test}")
-    #TEST_SIZE = time_idx_range_test
+    #TEST_SIZE = time_idx_range_test_over_target
     print('TEST_SIZE', TEST_SIZE)
     
     '''
@@ -166,14 +183,14 @@ def main():
         # https://stackoverflow.com/questions/72122939/resourceexhaustederror-graph-execution-error-when-trying-to-train-tensorflow
         readin = read.Read('netcdf')
         if file_x_mode == 'one_var_per_file': 
-            var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
+            var_low_res_dict = readin.read_netcdf_one_var_per_file(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres_target)
         elif file_x_mode == 'multivar_singlefile': 
-            var_low_res_dict = readin.read_netcdf_multivar_singlefile(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres)
+            var_low_res_dict = readin.read_netcdf_multivar_singlefile(dir_low_res, varname_predictor_low_res,  file_filter['file_x'], time_idx_range_lowres_target)
 
         if file_y_mode == 'one_var_per_file': 
-            var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter['file_y'], time_idx_range_highres)
+            var_high_res_dict = readin.read_netcdf_one_var_per_file(dir_high_res, varname_predictand_high_res, file_filter['file_y'], time_idx_range_highres_target)
         elif file_y_mode == 'multivar_singlefile': 
-            var_high_res_dict = readin.read_netcdf_multivar_singlefile(dir_high_res, varname_predictand_high_res,  file_filter['file_y'], time_idx_range_highres)
+            var_high_res_dict = readin.read_netcdf_multivar_singlefile(dir_high_res, varname_predictand_high_res,  file_filter['file_y'], time_idx_range_highres_target)
 
     # constant fields (eg, orography)
     var_const_high_res_dict = {}
@@ -219,9 +236,18 @@ def main():
         residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict = \
         preproc.adjust_data_size(var_low_res_dict, var_const_high_res_dict, var_high_res_dict, BATCH_SIZE)
 
-    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_adjusted_dict, SCALE_METHOD)
+    if TRAINING_MODE == True and PREDICTION_MODE == True:
+        predonly = False
+        scaler_path = wdir + '/scaler/'
+        checkdir.checkdir(scaler_path)
+    elif TRAINING_MODE == False and PREDICTION_MODE == True:
+        predonly = True
+        scaler_path = PRETRAINED_PATH +  '/scaler/'
+    print('predonly is:', predonly)
+
+    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_adjusted_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'lr')
     var_const_high_res_scaled_dict = preproc.scale_const_dict(var_const_high_res_adjusted_dict)
-    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_adjusted_dict, SCALE_METHOD)
+    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_adjusted_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'hr')
 
     for key, values in var_low_res_adjusted_dict.items():
         print('shape var_low_res_adjusted_dict:', key, values.shape)
@@ -250,7 +276,7 @@ def main():
     #preproc.split_data(var_low_res_filtered_dict, var_high_res_scaled_dict, \
     dataset_train, dataset_valid, dataset_test, X_train, X_test, const_train, const_test, y_train, y_test = \
         preproc.split_data(var_low_res_filtered_dict, var_const_high_res_scaled_dict, var_high_res_scaled_dict, \
-        BATCH_SIZE, time_idx_range_test, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
+        BATCH_SIZE, time_idx_range_test_over_target, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
         varname_predictand_high_res[0], downscale_mode)
 
     """
@@ -379,12 +405,13 @@ def main():
     """
             
 
-    var_to_write_x_inverse = preproc.inverse_dict(var_to_write_x, var_low_res_adjusted_dict)
-    var_to_write_ypred_inverse = preproc.inverse_dict(var_to_write_ypred, var_high_res_adjusted_dict)
-    var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict)
+    var_to_write_x_inverse = preproc.inverse_dict(var_to_write_x, var_low_res_adjusted_dict, scaler_path, resolution = 'lr')
+    var_to_write_ypred_inverse = preproc.inverse_dict(var_to_write_ypred, var_high_res_adjusted_dict, scaler_path, resolution = 'hr')
+    var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict, scaler_path, resolution = 'hr')
 
     for i in range(len(TEST_SIZE)):
         var_to_write_ypred_inverse_period, var_to_write_ytest_inverse_period, var_to_write_x_inverse_period = {}, {}, {}
+        var_to_write_ypred_normalized_period, var_to_write_ytest_normalized_period, var_to_write_x_normalized_period = {}, {}, {}
         if i == 0:
             start_idx_test_to_write, end_idx_test_to_write = 0, TEST_SIZE[i]
         else:
@@ -397,9 +424,12 @@ def main():
         for ivar_predictand in varname_predictand_high_res:
             var_to_write_ypred_inverse_period[ivar_predictand] = var_to_write_ypred_inverse[ivar_predictand][start_idx_test_to_write:end_idx_test_to_write]
             var_to_write_ytest_inverse_period[ivar_predictand] = var_to_write_ytest_inverse[ivar_predictand][start_idx_test_to_write:end_idx_test_to_write]
+            var_to_write_ypred_normalized_period[ivar_predictand] = var_to_write_ypred[ivar_predictand][start_idx_test_to_write:end_idx_test_to_write]
+            var_to_write_ytest_normalized_period[ivar_predictand] = var_to_write_ytest[ivar_predictand][start_idx_test_to_write:end_idx_test_to_write]
 
         for ivar_predictor in varname_predictor_low_res:
             var_to_write_x_inverse_period[ivar_predictor] = var_to_write_x_inverse[ivar_predictor][start_idx_test_to_write:end_idx_test_to_write]
+            var_to_write_x_normalized_period[ivar_predictor] = var_to_write_x[ivar_predictor][start_idx_test_to_write:end_idx_test_to_write]
 
 
         nc_files_to_read_y = {}
@@ -411,6 +441,7 @@ def main():
                     nc_files_to_read_y[ivar_predictand] = ifile
         print('high res file', nc_files_to_read_y)
         filewriter_ypred = file_writer.FileWriter(wdir + '/' + 'predictant_ypred_' + str(i+1) + '.nc')
+        filewriter_ypred_normalized = file_writer.FileWriter(wdir + '/' + 'predictant_ypred_scaled_' + str(i+1) + '.nc')
 
         #nc_files_to_read_y = glob.glob(dir_high_res[i] + '/' + varname_predictand_high_res[0] + '/' + '*')
         #nc_files_to_read_y.sort()
@@ -419,11 +450,15 @@ def main():
         filewriter_ypred.Write_NC(nc_files_to_read_y, \
                         #varname_predictand_high_res[0], \
                         #['y_pred', 'y_test'], \
-                        varname_predictand_high_res,
+                        varname_predictand_high_res, time_idx_range_highres_test, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ypred_inverse_period)
+        filewriter_ypred_normalized.Write_NC(nc_files_to_read_y, \
+                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ypred_normalized_period)
 
 
         filewriter_ytest = file_writer.FileWriter(wdir + '/' + 'predictant_ytest_' + str(i+1) + '.nc')
+        filewriter_ytest_normalized = file_writer.FileWriter(wdir + '/' + 'predictant_ytest_scaled_' + str(i+1) + '.nc')
         #nc_files_to_read_y = glob.glob(dir_high_res[i] + '/' + varname_predictand_high_res[0] + '/' + '*')
         #nc_files_to_read_y.sort()
         ##filewriter_y.Write_NC(glob.glob(dir_high_res[0] + varname_predictand_high_res[0] + '*')[0], \
@@ -438,8 +473,11 @@ def main():
         #print('high res file', nc_files_to_read_y[0])
         filewriter_ytest.Write_NC(nc_files_to_read_y, \
                         #varname_predictand_high_res[0], \
-                        varname_predictand_high_res,
+                        varname_predictand_high_res, time_idx_range_highres_test, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ytest_inverse_period)
+        filewriter_ytest_normalized.Write_NC(nc_files_to_read_y, \
+                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ytest_normalized_period)
 
 
         nc_files_to_read_x = {}
@@ -455,6 +493,7 @@ def main():
                     nc_files_to_read_x[ivar_predictor] = ifile
 
         filewriter_x = file_writer.FileWriter(wdir + '/' + 'predictor_' + str(i+1) + '.nc')
+        filewriter_x_normalized = file_writer.FileWriter(wdir + '/' + 'predictor_scaled_' + str(i+1) + '.nc')
 
         #if file_x_mode == 'one_var_per_file': 
         #    nc_files_to_read_x = glob.glob(dir_low_res[i] +  '/' + varname_predictor_low_res[0] + '/' + '*')
@@ -464,9 +503,11 @@ def main():
         #nc_files_to_read_x.sort()
         print('low res file', nc_files_to_read_x)
         filewriter_x.Write_NC(nc_files_to_read_x, \
-                        #varname_predictor_low_res[0], \
-                        varname_predictor_low_res, \
+                        varname_predictor_low_res, time_idx_range_lowres_test, \
                         residue_time_low_res, TEST_SIZE[i], {'x':0, 'y':0}, var_to_write_x_inverse_period)
+        filewriter_x_normalized.Write_NC(nc_files_to_read_x, \
+                        varname_predictor_low_res, time_idx_range_lowres_test, \
+                        residue_time_low_res, TEST_SIZE[i], {'x':0, 'y':0}, var_to_write_x_normalized_period)
 
     postproc.plot_result(y_pred, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
     print('Completed!')

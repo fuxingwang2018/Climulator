@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy.ndimage import gaussian_filter
+from joblib import dump, load
 
 class PreProcess(object):
     """ Data pre-processing """
@@ -57,7 +58,7 @@ class PreProcess(object):
         return scaler, var
 
 
-    def scale_dict(self, var_dict_in, method):
+    def scale_dict(self, var_dict_in, method, predonly, scaler_path, resolution):
 
         """
         Scale data to same magnitude 
@@ -71,13 +72,13 @@ class PreProcess(object):
         var_dict_out = {}
         for key, values in var_dict_in.items():
             #print(type(values), values.shape)
-            var_dict_out[key] = self.scale_var(values, method)
+            var_dict_out[key] = self.scale_var(values, method, key, predonly, scaler_path, resolution)
             print('scale key:', key)
 
         return var_dict_out
 
 
-    def inverse_dict(self, var_dict_in, var_ref):
+    def inverse_dict(self, var_dict_in, var_ref, scaler_path, resolution):
 
         """
         Inverse scaled data (0-1) to real data
@@ -90,7 +91,7 @@ class PreProcess(object):
 
         var_dict_out = {}
         for key, values in var_dict_in.items():
-            var_dict_out[key] = self.inverse_var(values, var_ref[key])
+            var_dict_out[key] = self.inverse_var(values, var_ref[key], key, scaler_path, resolution)
             print('inverse key:', key)
 
         return var_dict_out
@@ -252,7 +253,7 @@ class PreProcess(object):
             residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict
 
 
-    def scale_var_old(self, var_origin, method):
+    def scale_var(self, var_origin, method, var_name, predonly, scaler_path, resolution):
 
         """
         Scale data (along time axis) to same magnitude, first along time axis, if all 0, scale it along space
@@ -263,12 +264,23 @@ class PreProcess(object):
         :rtype: array
         """
 
+        missing_value = 1e20
         shape = var_origin.shape
         var = var_origin.reshape((shape[0], -1))
+        #var[var >= missing_value] = np.nan #0.0
+        if var_name == 'mrsol':
+            var[var == 0] = missing_value
+            print('mrsol = 0 set to missing value:', missing_value)
 
         if method == 'scale_over_time':
-            scaler = MinMaxScaler()
-            var_scaled = scaler.fit_transform(var)
+            if not predonly:
+                scaler = MinMaxScaler()
+                scaler.fit(var)
+                dump(scaler, f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
+            else:
+                scaler = load(f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
+            var_scaled = scaler.transform(var)
+            #var_scaled = scaler.fit_transform(var)
             var_scaled = var_scaled.reshape(shape)
 
         elif method == 'scale_over_space':
@@ -287,6 +299,7 @@ class PreProcess(object):
         #var_scaled = np.expand_dims(var_before_scale, axis=3)
         #var_scaled = np.copy(var_before_scale)
         print('var_scaled', var_scaled.shape, np.nanmin(var_scaled), np.nanmax(var_scaled))
+
 
         #scalers_list = []
         #scalers_list.append(scaler)
@@ -400,7 +413,7 @@ class PreProcess(object):
     """
 
 
-    def scale_var(self, var_origin, method):
+    def scale_var_wrong(self, var_origin, method):
 
         """
         Scale data using MinMaxScaler.
@@ -471,7 +484,7 @@ class PreProcess(object):
 
 
 
-    def inverse_var(self, var_origin, var_ref_to_fit):
+    def inverse_var(self, var_origin, var_ref_to_fit, var_name, scaler_path, resolution):
 
         """
         inverse scaled data (0-1) to real data
@@ -481,18 +494,23 @@ class PreProcess(object):
         :return: inversed variable, var_inverse
         :rtype: array
         """
-        
+
+        missing_value = 1e20 
         shape = var_origin.shape
         var = var_origin.reshape((shape[0], -1))
         shape_ref = var_ref_to_fit.shape
         var_ref_reshape = var_ref_to_fit.reshape((shape_ref[0], -1))
         print('shape, shape_ref', shape, shape_ref)
 
-        scaler = MinMaxScaler()
-        scaler.fit(var_ref_reshape)
+        #scaler = MinMaxScaler()
+        #scaler.fit(var_ref_reshape)
+        scaler = load(f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
         var_inverse = scaler.inverse_transform(var)
 
         var_inverse = var_inverse.reshape(shape)
+        #if var_name == 'mrsol':
+        #    var_inverse[var_inverse == 0] = np.nan
+        #    print('mrsol = 0 set to nan')
 
         #scaler, var_inverse = self.inverse(scaler, var_before_inverse)
         print('var_before_inverse', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))

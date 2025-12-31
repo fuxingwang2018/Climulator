@@ -66,7 +66,7 @@ class FileWriter(object):
     """
 
     #def Write_NC(self, nc_file_2D, nc_var_to_read, nc_vars_to_write, time_offset, time_length, geo_offset, var_2D_dict):
-    def Write_NC(self, nc_file_2D, nc_vars_to_write, time_offset, time_length, geo_offset, var_2D_dict):
+    def Write_NC(self, nc_file_2D, nc_vars_to_write, time_idx_range, time_offset, time_length, geo_offset, var_2D_dict):
 
         nam_lon = 'lon'
         nam_lat = 'lat'
@@ -97,8 +97,10 @@ class FileWriter(object):
         print('x_start, x_end', x_start, x_end)
         print('y_start, y_end', y_start, y_end)
         #time_2d = nc_file_2D_id.variables['time'][time_offset*(-1):]
-        time_start = time_offset*(-1) + time_length*(-1)
-        time_end = time_offset*(-1)
+        #time_start = time_offset*(-1) + time_length*(-1)
+        #time_end = time_offset*(-1)
+        time_start = time_idx_range['start_idx'][0]
+        time_end = time_idx_range['end_idx'][0]
         time_2d = nc_file_2D_id.variables['time'][time_start:time_end] if time_end != 0 else nc_file_2D_id.variables['time'][time_start:]
         print('time_start, time_end, time_2d', time_start, time_end, time_2d)
 
