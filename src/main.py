@@ -54,6 +54,8 @@ def main():
     PRETRAINED_GENERATOR = PRETRAINED_PATH + '/model_1_generator.h5'
 
     SCALE_METHOD = cdict['stats_conf']['PREPROCESS']['SCALE_METHOD']
+    SCALER_DEF = cdict['stats_conf']['PREPROCESS']['SCALER_DEF']
+    SCALER_HUS = cdict['stats_conf']['PREPROCESS']['SCALER_HUS']
 
     if USE_SEED:
         seed.set_seed(seed = 42, disable_parallel = DISABLE_PARALLEL, enforce_determinism = ENFORCE_DETERMINISM)
@@ -91,6 +93,12 @@ def main():
 
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, \
             NX, NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
+
+    scaler_dict = {
+        var: (SCALER_HUS if 'hus' in var else SCALER_DEF)
+        for var in varname_predictor_low_res + varname_predictand_high_res
+    }
+
 
     dir_low_res, dir_high_res, dir_const = [], [], []
     for item in path_x:
@@ -245,9 +253,9 @@ def main():
         scaler_path = PRETRAINED_PATH +  '/scaler/'
     print('predonly is:', predonly)
 
-    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_adjusted_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'lr')
+    var_low_res_scaled_dict = preproc.scale_dict(var_low_res_adjusted_dict, scaler_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'lr')
     var_const_high_res_scaled_dict = preproc.scale_const_dict(var_const_high_res_adjusted_dict)
-    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_adjusted_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'hr')
+    var_high_res_scaled_dict = preproc.scale_dict(var_high_res_adjusted_dict, scaler_dict, SCALE_METHOD, predonly, scaler_path, resolution = 'hr')
 
     for key, values in var_low_res_adjusted_dict.items():
         print('shape var_low_res_adjusted_dict:', key, values.shape)
@@ -405,9 +413,9 @@ def main():
     """
             
 
-    var_to_write_x_inverse = preproc.inverse_dict(var_to_write_x, var_low_res_adjusted_dict, scaler_path, resolution = 'lr')
-    var_to_write_ypred_inverse = preproc.inverse_dict(var_to_write_ypred, var_high_res_adjusted_dict, scaler_path, resolution = 'hr')
-    var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict, scaler_path, resolution = 'hr')
+    var_to_write_x_inverse = preproc.inverse_dict(var_to_write_x, var_low_res_adjusted_dict, scaler_dict, scaler_path, resolution = 'lr')
+    var_to_write_ypred_inverse = preproc.inverse_dict(var_to_write_ypred, var_high_res_adjusted_dict, scaler_dict, scaler_path, resolution = 'hr')
+    var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict, scaler_dict, scaler_path, resolution = 'hr')
 
     for i in range(len(TEST_SIZE)):
         var_to_write_ypred_inverse_period, var_to_write_ytest_inverse_period, var_to_write_x_inverse_period = {}, {}, {}

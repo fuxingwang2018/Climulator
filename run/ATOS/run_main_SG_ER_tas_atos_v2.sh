@@ -1,9 +1,10 @@
 #!/bin/bash 
 ###SBATCH -N 1
 #SBATCH --nodes 1
-#SBATCH -t 01:00:00 
-#SBATCH -J SGERtaspred
-#SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH -t 09:00:00 
+#SBATCH -J SGERtwsmt
+###SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1
@@ -14,11 +15,12 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=450G
-###SBATCH --hint=nomultithread
+#SBATCH --mem=460G
+
 ###SBATCH -account=spselind
 
 DOMAIN='EmiliaRomagna'
+#DOMAIN='TestDomain'
 VARIABLE='tas'
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
@@ -38,7 +40,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_predonly_atos.ini
+python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos_v2.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

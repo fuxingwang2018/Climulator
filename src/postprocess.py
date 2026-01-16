@@ -68,7 +68,7 @@ class PostProcess(object):
         print('plot_input_data Done')
 
 
-    def plot_lines(self, data_dict, path_figure):
+    def plot_gan_history(self, data_dict, path_figure):
 
         fig, ax1 = plt.subplots()
         gen_loss, disc_loss = ['gen_loss',  'val_gen_loss'], ['disc_loss', 'val_disc_loss']
@@ -94,9 +94,35 @@ class PostProcess(object):
         ax2.legend(lines + lines2, labels + labels2, loc='best')
 
         plt.grid(visible=True, which='major', axis='both', linestyle=':', linewidth=1 )
-        plt.title('Vriation of loss function with steps')
+        plt.title('Variation of loss function with epoch')
 
         fig.tight_layout()  
+        plt.savefig(path_figure)
+        plt.close()
+
+
+    def plot_gan_history_component(self, data_dict, path_figure):
+        epochs = range(len(data_dict['content_loss']))
+        
+        plt.figure(figsize=(15, 10))
+
+        # Plot 1: Generator Components
+        plt.subplot(2, 1, 1)
+        plt.plot(epochs, data_dict['content_loss'], label='Content Loss (MSE)')
+        plt.plot(epochs, data_dict['adv_loss'], label='Adversarial Loss')
+        plt.plot(epochs, data_dict['gen_loss'], label='Generator Loss')
+        plt.title('Generator Loss Components')
+        plt.legend()
+
+        # Plot 2: Discriminator Components
+        plt.subplot(2, 1, 2)
+        plt.plot(epochs, data_dict['real_loss'], label='Real Loss')
+        plt.plot(epochs, data_dict['fake_loss'], label='Fake Loss')
+        plt.plot(epochs, data_dict['disc_loss'], label='Discriminator Loss')
+        plt.title('Discriminator Loss Components')
+        plt.legend()
+
+        plt.tight_layout()
         plt.savefig(path_figure)
         plt.close()
 

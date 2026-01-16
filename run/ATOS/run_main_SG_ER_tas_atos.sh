@@ -3,7 +3,7 @@
 #SBATCH --nodes 1
 #SBATCH -t 09:00:00 
 #SBATCH -J SGERtwsmt
-#SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1

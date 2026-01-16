@@ -147,8 +147,10 @@ class TrainModel(object):
         print ('history:', type(hist.history), hist.history)
         savemat(self.wdir + f'loss_{model_name}.mat', hist.history)
         path_figure_loss = self.wdir + '/Loss_Function_EPOCHS' + str(EPOCHS) + '.png'
+        path_figure_loss_component = self.wdir + '/Loss_Function_Component_EPOCHS' + str(EPOCHS) + '.png'
         postproc = postprocess.PostProcess()
-        postproc.plot_lines(hist.history, path_figure_loss)
+        postproc.plot_gan_history(hist.history, path_figure_loss)
+        postproc.plot_gan_history_component(hist.history, path_figure_loss_component)
 
 
         # The latest model weights (that are considered the best) are loaded into the model.
@@ -165,8 +167,11 @@ class TrainModel(object):
         #latest = tf.train.latest_checkpoint(os.path.dirname(self.wdir))
         latest = max(checkpoint_files, key=os.path.getctime)  # Get latest modified file
         #model.load_weights(latest)
-        loss, acc = model.evaluate(dataset_train, verbose=2)
-        print('loss, acc using latest weights =', loss, acc)
+        #loss, acc = model.evaluate(dataset_train, verbose=2)
+        #print('loss, acc using latest weights =', loss, acc)
+        results = model.evaluate(dataset_train, verbose=2)
+        for name, value in zip(model.metrics_names, results):
+            print(f"{name}: {value}")
 
         # Save the model to a HDF5 file.
         generator.save(self.wdir + f'{model_name}_generator.h5')

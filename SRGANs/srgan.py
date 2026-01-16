@@ -19,7 +19,10 @@ class SRGAN(models.Model):
         self.discriminator = discriminator
         self.loss_tracker_1 = metrics.Mean(name="gen_loss")
         self.loss_tracker_2 = metrics.Mean(name="disc_loss")
-        
+        self.content_loss_tracker = metrics.Mean(name="content_loss")
+        self.adv_loss_tracker = metrics.Mean(name="adv_loss")
+        self.real_loss_tracker = metrics.Mean(name="real_loss")
+        self.fake_loss_tracker = metrics.Mean(name="fake_loss") 
 
     def compile(self, generator_optimizer, discriminator_optimizer, generator_loss, discriminator_loss):
         super(SRGAN, self).compile()
@@ -44,8 +47,8 @@ class SRGAN(models.Model):
             #print('fake_ptv.shape:', fake_ptv.shape)
             #print('generated_batch.shape:', generated_batch.shape)
             #print('hr_predic.shape:', hr_predic.shape)
-            gen_loss = self.gen_loss(fake_ptv, generated_batch, hr_predic)
-            disc_loss = self.disc_loss(real_ptv, fake_ptv)
+            gen_loss, content_loss, adversarial_loss = self.gen_loss(fake_ptv, generated_batch, hr_predic)
+            disc_loss, real_loss, fake_loss = self.disc_loss(real_ptv, fake_ptv)
 
         gradients_of_generator = tape.gradient(gen_loss, self.generator.trainable_variables)
         gradients_of_discriminator = tape.gradient(disc_loss, self.discriminator.trainable_variables)
@@ -55,7 +58,18 @@ class SRGAN(models.Model):
         
         self.loss_tracker_1.update_state(gen_loss)
         self.loss_tracker_2.update_state(disc_loss)
-        return {"gen_loss": self.loss_tracker_1.result(), "disc_loss": self.loss_tracker_2.result()}
+        self.content_loss_tracker.update_state(content_loss)
+        self.adv_loss_tracker.update_state(adversarial_loss)
+        self.real_loss_tracker.update_state(real_loss)
+        self.fake_loss_tracker.update_state(fake_loss)
+
+        return {"gen_loss": self.loss_tracker_1.result(), 
+                "disc_loss": self.loss_tracker_2.result(),
+                "content_loss": self.content_loss_tracker.result(),
+                "adv_loss": self.adv_loss_tracker.result(),
+                "real_loss": self.real_loss_tracker.result(),
+                "fake_loss": self.fake_loss_tracker.result(),
+                }
 
     #@tf.function
     @conditional_tf_function
@@ -72,8 +86,14 @@ class SRGAN(models.Model):
           
         self.loss_tracker_1.update_state(gen_loss)
         self.loss_tracker_2.update_state(disc_loss)
-        return {"gen_loss": self.loss_tracker_1.result(), "disc_loss": self.loss_tracker_2.result()}
-    
+        return {"gen_loss": self.loss_tracker_1.result(), "disc_loss": self.loss_tracker_2.result(),
+                "content_loss": self.content_loss_tracker.result(),
+                "adv_loss": self.adv_loss_tracker.result(),
+                "real_loss": self.real_loss_tracker.result(),
+                "fake_loss": self.fake_loss_tracker.result(),
+                }
+
     @property
     def metrics(self):
-        return [self.loss_tracker_1, self.loss_tracker_2]
+        return [self.loss_tracker_1, self.loss_tracker_2, self.content_loss_tracker, self.adv_loss_tracker, 
+                self.real_loss_tracker, self.fake_loss_tracker]

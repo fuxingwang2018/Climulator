@@ -3,6 +3,9 @@ import tensorflow as tf
 #from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import PowerTransformer
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy.ndimage import gaussian_filter
@@ -58,7 +61,7 @@ class PreProcess(object):
         return scaler, var
 
 
-    def scale_dict(self, var_dict_in, method, predonly, scaler_path, resolution):
+    def scale_dict(self, var_dict_in, scaler_dict, method, predonly, scaler_path, resolution):
 
         """
         Scale data to same magnitude 
@@ -72,13 +75,13 @@ class PreProcess(object):
         var_dict_out = {}
         for key, values in var_dict_in.items():
             #print(type(values), values.shape)
-            var_dict_out[key] = self.scale_var(values, method, key, predonly, scaler_path, resolution)
-            print('scale key:', key)
+            var_dict_out[key] = self.scale_var(values, scaler_dict, method, key, predonly, scaler_path, resolution)
+            #print('scale key:', key)
 
         return var_dict_out
 
 
-    def inverse_dict(self, var_dict_in, var_ref, scaler_path, resolution):
+    def inverse_dict(self, var_dict_in, var_ref, scaler_dict, scaler_path, resolution):
 
         """
         Inverse scaled data (0-1) to real data
@@ -91,7 +94,7 @@ class PreProcess(object):
 
         var_dict_out = {}
         for key, values in var_dict_in.items():
-            var_dict_out[key] = self.inverse_var(values, var_ref[key], key, scaler_path, resolution)
+            var_dict_out[key] = self.inverse_var(values, var_ref[key], key, scaler_dict, scaler_path, resolution)
             print('inverse key:', key)
 
         return var_dict_out
@@ -253,7 +256,22 @@ class PreProcess(object):
             residue_time_low_res, residue_time_const_high_res, residue_time_high_res, residue_geo_dict
 
 
-    def scale_var(self, var_origin, method, var_name, predonly, scaler_path, resolution):
+    def get_scaler(self, var_name, scaler_var):
+
+        if scaler_var == 'PowerTransformer': 
+            scaler = PowerTransformer(method='yeo-johnson')
+        elif scaler_var == 'MinMaxScaler': 
+            scaler = MinMaxScaler() #feature_range=(-1, 1))
+        elif scaler_var == 'StandardScaler': 
+            scaler = StandardScaler()
+        elif scaler_var == 'RobustScaler': 
+            scaler = RobustScaler()
+        print('var_name, scaler_var', var_name, scaler_var)
+
+        return scaler
+
+
+    def scale_var(self, var_origin, scaler_dict, method, var_name, predonly, scaler_path, resolution):
 
         """
         Scale data (along time axis) to same magnitude, first along time axis, if all 0, scale it along space
@@ -268,17 +286,22 @@ class PreProcess(object):
         shape = var_origin.shape
         var = var_origin.reshape((shape[0], -1))
         #var[var >= missing_value] = np.nan #0.0
-        if var_name == 'mrsol':
-            var[var == 0] = missing_value
-            print('mrsol = 0 set to missing value:', missing_value)
+        #if var_name == 'mrsol':
+        #    var[var == 0] = missing_value
+        #    print('mrsol = 0 set to missing value:', missing_value)
+        #if var_name == 'mrsol':
+            #epsilon = 1e-10
+            #var = np.log(var + epsilon)
+
+        scaler_var = scaler_dict[var_name] 
 
         if method == 'scale_over_time':
             if not predonly:
-                scaler = MinMaxScaler()
+                scaler = self.get_scaler(var_name, scaler_var)
                 scaler.fit(var)
-                dump(scaler, f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
+                dump(scaler, f"{scaler_path}/{scaler_var}_{resolution}_{var_name}.joblib")
             else:
-                scaler = load(f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
+                scaler = load(f"{scaler_path}/{scaler_var}_{resolution}_{var_name}.joblib")
             var_scaled = scaler.transform(var)
             #var_scaled = scaler.fit_transform(var)
             var_scaled = var_scaled.reshape(shape)
@@ -288,11 +311,14 @@ class PreProcess(object):
         #if all_equal:
             #mask = var < threshold 
             var_T = np.transpose(var)
-            scaler = MinMaxScaler()
+            scaler = self.get_scaler(var_name, scaler_var)
             var_scaled_T = scaler.fit_transform(var_T)
             var_scaled = np.transpose(var_scaled_T)
             var_scaled = var_scaled.reshape(shape)
 
+        if var_name == 'mrsol':
+            invalid = (var_origin <= 0) | (var_origin > 1e10)
+            var_scaled[invalid] = 0.0
 
         #scaler, var_before_scale = self.scale(scaler, var_before_scale)
         print('var_origin', var_origin.shape, np.nanmin(var_origin), np.nanmax(var_origin))
@@ -484,7 +510,7 @@ class PreProcess(object):
 
 
 
-    def inverse_var(self, var_origin, var_ref_to_fit, var_name, scaler_path, resolution):
+    def inverse_var(self, var_origin, var_ref_to_fit, var_name, scaler_dict, scaler_path, resolution):
 
         """
         inverse scaled data (0-1) to real data
@@ -501,11 +527,18 @@ class PreProcess(object):
         shape_ref = var_ref_to_fit.shape
         var_ref_reshape = var_ref_to_fit.reshape((shape_ref[0], -1))
         print('shape, shape_ref', shape, shape_ref)
+        scaler_var = scaler_dict[var_name] 
 
         #scaler = MinMaxScaler()
         #scaler.fit(var_ref_reshape)
-        scaler = load(f"{scaler_path}/minmax_scaler_{resolution}_{var_name}.joblib")
+        scaler = load(f"{scaler_path}/{scaler_var}_{resolution}_{var_name}.joblib")
         var_inverse = scaler.inverse_transform(var)
+
+        #if var_name == 'mrsol':
+        #    epsilon = 1e-10
+        #    var_inverse = np.exp(var_inverse)
+        #    var_inverse = var_inverse - epsilon
+        #    var_inverse = np.maximum(var_inverse, 0)
 
         var_inverse = var_inverse.reshape(shape)
         #if var_name == 'mrsol':

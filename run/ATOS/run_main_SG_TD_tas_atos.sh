@@ -6,20 +6,22 @@
 #SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
-#SBATCH --gpus=1
+#SBATCH --gpus=2
 #SBATCH --qos=ng
-#SBATCH --mem=80G
 ##BATCH --mem-per-cpu=4G
+
 ###SBATCH --ntasks=128
-#SBATCH --cpus-per-task=32
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=1
+#SBATCH --gpus-per-node=2
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=80G
 
 #export TF_DETERMINISTIC_OPS=1
 export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
 
 DOMAIN='TestDomain'
 VARIABLE='tas'
+GCM='ERAI'
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
 export TF_DETERMINISTIC_OPS=0

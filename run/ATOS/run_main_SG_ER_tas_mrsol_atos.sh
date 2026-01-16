@@ -4,7 +4,8 @@
 #SBATCH -t 09:00:00 
 
 #SBATCH -J SGERtm
-#SBATCH --chdir=/home/smf/log/log_ml
+###SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1
@@ -12,7 +13,8 @@
 ###SBATCH --mem-per-gpu=450G
 
 #SBATCH --ntasks-per-node=4
-#SBATCH --gpus-per-node=4
+#SBATCH --gpus-per-node=2
+###SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-task=32
 ###SBATCH --mem=80G
 

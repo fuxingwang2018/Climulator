@@ -77,7 +77,7 @@ def default_stats_config(stats):
             'NX': 104,
             'NY': 88,
             'LEARNING_RATE': {'GENERATOR':1e-4, 'DISCRIMINATOR':2e-4},
-            'DROPOUT_RATE':0.3, 
+            'DROPOUT_RATE': -1, 
             'EARLY_STOP':False, 
             'DATA_AUGMENTATION':False, 
             'USE_SEED':False, 
@@ -86,9 +86,22 @@ def default_stats_config(stats):
         'RUNNING_MODE': {
             'TRAINING_MODE': True, 
             'PREDICTION_MODE': True, 
-            'PRETRAINED_GENERATOR': ''},
+            'PRETRAINED_PATH': ''},
         'PREPROCESS': {
-            'SCALE_METHOD': 'scale_space'}, 
+            'SCALER_DEF': 'StandardScaler',
+            'SCALER_HUS': 'PowerTransformer',
+            'SCALE_METHOD': 'scale_over_time'}, 
+        'LOSS': {
+            'WEIGHT_ADVERSARIAL': 1e-5,
+            'WEIGHT_CONTENT': 1.0,
+            'WEIGHT_CROSS_ENTROPY': 0.2,
+            'LAMBDA_CORR': 0.0, 
+            'CONTENT_LOSS_FUNC': 'MSE',
+            'LOSSES_REDUCTION': 'NONE',
+            'LABEL_SMOOTHING_REAL': 1.0,
+            'DISCRIMINATOR_NOISE_STD': 0.03,
+            'DISCRIMINATOR_LABEL_NOISE': 0.03,
+            }, 
             }
         #'INPUT_CHANNELS': 1, 
         #'OUTPUT_CHANNELS': 1, 
