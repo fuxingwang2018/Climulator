@@ -23,14 +23,12 @@ if not os.path.isfile(config_file):
     raise ValueError(f"\nConfig file, '{config_file}', does not exist!")
 cdict = get_configuration.get_settings(config_file)
 
-#weight_adversarial = 1e-6 #1e-3 # in original version: 1e-5
-#weight_content = 1.0 # in original version: 1.0
 #weight_cross_entropy = 0.2 #0.2 #1.0 # in original verison 0.2
 #lambda_corr = 0.0 #default 0.1; tune from 0.05 to 0.5
-weight_adversarial = cdict['stats_conf']['LOSS']['WEIGHT_ADVERSARIAL']
-weight_content = cdict['stats_conf']['LOSS']['WEIGHT_CONTENT']
-weight_cross_entropy = cdict['stats_conf']['LOSS']['WEIGHT_CROSS_ENTROPY']
-lambda_corr = cdict['stats_conf']['LOSS']['LAMBDA_CORR']
+weight_adversarial = cdict['stats_conf']['LOSS']['WEIGHT_ADVERSARIAL'] #1e-5
+weight_content = cdict['stats_conf']['LOSS']['WEIGHT_CONTENT'] #1.0
+weight_cross_entropy = cdict['stats_conf']['LOSS']['WEIGHT_CROSS_ENTROPY'] #0.2
+lambda_corr = cdict['stats_conf']['LOSS']['LAMBDA_CORR'] #0.0
 content_loss_func = cdict['stats_conf']['LOSS']['CONTENT_LOSS_FUNC']
 losses_reduction = cdict['stats_conf']['LOSS']['LOSSES_REDUCTION']
 label_smoothing_real = cdict['stats_conf']['LOSS']['LABEL_SMOOTHING_REAL']

@@ -1,9 +1,10 @@
 #!/bin/bash 
 ###SBATCH -N 1
 #SBATCH --nodes 1
-#SBATCH -t 09:00:00 
+#SBATCH -t 08:00:00 
 #SBATCH -J SGERpr2
-#SBATCH --chdir=/home/smf/log/log_ml
+###SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1
@@ -12,7 +13,7 @@
 
 ###SBATCH --ntasks=128
 #SBATCH --ntasks-per-node=4
-#SBATCH --gpus-per-node=4
+#SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=460G
 

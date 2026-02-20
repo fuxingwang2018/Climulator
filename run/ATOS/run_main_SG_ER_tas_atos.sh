@@ -1,8 +1,8 @@
 #!/bin/bash 
 ###SBATCH -N 1
 #SBATCH --nodes 1
-#SBATCH -t 09:00:00 
-#SBATCH -J SGERtwsmt
+#SBATCH -t 08:00:00 
+#SBATCH -J SGERtv1
 #SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out

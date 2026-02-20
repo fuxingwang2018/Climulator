@@ -497,7 +497,7 @@ def main():
             elif file_x_mode == 'multivar_singlefile': 
                 nc_files_low_res_all = glob.glob(dir_low_res[i] +  '/' + '*' )
             for ifile in nc_files_low_res_all:
-                if pattern.search(ifile): 
+                if pattern.search(ifile):
                     nc_files_to_read_x[ivar_predictor] = ifile
 
         filewriter_x = file_writer.FileWriter(wdir + '/' + 'predictor_' + str(i+1) + '.nc')

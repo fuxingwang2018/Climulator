@@ -2,7 +2,7 @@
 ###SBATCH -N 1
 #SBATCH --nodes 1
 #SBATCH -t 08:00:00 
-#SBATCH -J SGERpr
+#SBATCH -J SGERpr4
 ###SBATCH --chdir=/home/smf/log/log_ml
 #SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
@@ -40,7 +40,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos_v4.ini
 
 #cd $HOME/Script/Climulator
 #python -m pytest

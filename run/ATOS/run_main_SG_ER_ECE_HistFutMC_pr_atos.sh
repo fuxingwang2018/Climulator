@@ -1,38 +1,29 @@
 #!/bin/bash 
-###SBATCH -N 1
-#SBATCH --nodes 1
-#SBATCH -t 09:00:00 
+#SBATCH -N 1
+###SBATCH --nodes 1
 
-#SBATCH -J SGERtm
-###SBATCH --chdir=/home/smf/log/log_ml
-#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
+###SBATCH -t 00:30:00 
+#SBATCH -t 08:00:00 
+#SBATCH -J SGERECHFpr
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1
 #SBATCH --qos=ng
 ###SBATCH --mem-per-gpu=450G
 
+###SBATCH --ntasks=128
 #SBATCH --ntasks-per-node=4
 #SBATCH --gpus-per-node=2
-###SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-task=32
-###SBATCH --mem=80G
+#SBATCH --mem=450G
 
-
-#SBATCH --mem=460G
-###SBATCH --ntasks=512
-###SBATCH --cpus-per-task=32
-###2
-###SBATCH --ntasks-per-node=1
-###128 #16
-###SBATCH --mem-per-cpu=16G
 ###SBATCH --hint=nomultithread
 ###SBATCH -account=spselind
-###SBATCH -A spselind
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
-VARIABLE='tas_mrsol'
+VARIABLE='pr'
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
 export TF_DETERMINISTIC_OPS=0
@@ -51,7 +42,9 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_ECEHisFutMC_${VARIABLE}_atos.ini 
+#python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_ECEHis_atos.ini 
+#python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_ECEFutMC_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

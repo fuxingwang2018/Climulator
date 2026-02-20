@@ -2,8 +2,8 @@
 ###SBATCH -N 1
 #SBATCH --nodes 1
 #SBATCH -t 01:00:00 
-#SBATCH -J SGERtaspred
-#SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH -J SGERtpred
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 ###SBATCH --gpus=1
