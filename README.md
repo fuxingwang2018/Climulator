@@ -44,6 +44,18 @@
  pip install keras==2.12.0  #tensorflow needs to be 2.12 to be consistent with keras
 ```
 
+### On ALVIS/NAISS
+
+```
+ mkdir $HOME/venvs
+ cd $HOME/venvs
+ module load virtualenv/20.23.1-GCCcore-12.3.0
+ virtualenv --system-site-packages climulator
+ pip install mlxtend
+ pip install "numpy<2" #Solution for error: A module that was compiled using NumPy 1.x cannot be run in NumPy 2.4.2 as it may crash.
+
+```
+
 ### On local HPC (e.g., SMHI NSC Freja)
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 
