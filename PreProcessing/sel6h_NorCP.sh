@@ -12,23 +12,23 @@
 #SBATCH -A rossby
 
 
-EXP='NorCP12'
-#EXP='NorCP3'
+#EXP='NorCP12'
+EXP='NorCP3'
 FIRST_MONTH=01
 LAST_MONTH=12
 #GCM="ECMWF-ERAINT" 
-GCM="ICHEC-EC-EARTH_HIST" 
+#GCM="ICHEC-EC-EARTH_HIST" 
 #GCM="ICHEC-EC-EARTH_RCP85_MC"
 #GCM="ICHEC-EC-EARTH_RCP85_LC"
 #GCM="ICHEC-EC-EARTH_RCP45_MC"
-#GCM="ICHEC-EC-EARTH_RCP45_LC"
+GCM="ICHEC-EC-EARTH_RCP45_LC"
 
-connect_date_in='-'
+connect_date_in='_' #'-'
 connect_date_out='-'
 
 if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
     FIRST_YEAR=1998 # 1997 available, but one-year spinup
-    LAST_YEAR=2018 # 2018 available
+    LAST_YEAR=2018  # 2018 available
 elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
     FIRST_YEAR=1986 # 1985 available, but one-year spinup
     LAST_YEAR=2005 # 2005 available
@@ -61,15 +61,20 @@ if [[ "$EXP" == "NorCP12" ]]; then
         experiment='NEU-12_ICHEC-EC-EARTH_rcp45_r12i1p1_HCLIMcom-HCLIM38-ALADIN_v1'
     fi
     experiment_cmorized='12km'
-    freq_in='6hr' #1hr for tas, pr; 3hr for ta500..1000, hus500..1000, ua500..1000, va500..1000; 6hr for zg500..1000
+    #freq_in='1hr' #1hr for tas, pr; 3hr for ta500..1000, hus500..1000, ua500..1000, va500..1000; 6hr for zg500..1000
     freq_out='6hr' # 3hr, 6hr
-    #VAR_LIST=('pr') # pr, tas
-    VAR_LIST=('zg950') # pr, tas
+    #VAR_LIST=('tas' 'pr') # pr, tas
     #VAR_LIST=('ta500' 'ta700' 'ta850' 'ta950' 'ta1000' \
-    #	'hus500' 'hus700' 'hus850' 'hus950' 'hus1000' \
+    # 	'hus500' 'hus700' 'hus850' 'hus950' 'hus1000' \
     #	'ua500' 'ua700' 'ua850' 'ua950' 'ua1000' \
-    #	'va500' 'va700' 'va850' 'va950' 'va1000' )
+    # 	'va500' 'va700' 'va850' 'va950' 'va1000' )
     #VAR_LIST=('zg500' 'zg700' 'zg850' 'zg950' 'zg1000')
+    VAR_LIST=('tas' 'pr' \
+        'ta500' 'ta700' 'ta850' 'ta950' 'ta1000' \
+    	'hus500' 'hus700' 'hus850' 'hus950' 'hus1000' \
+    	'ua500' 'ua700' 'ua850' 'ua950' 'ua1000' \
+     	'va500' 'va700' 'va850' 'va950' 'va1000' \
+        'zg500' 'zg700' 'zg850' 'zg950' 'zg1000' )
 
 elif [[ "$EXP" == "NorCP3" ]]; then 
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
@@ -93,62 +98,87 @@ elif [[ "$EXP" == "NorCP3" ]]; then
         #connect_date_in='_' # for pr
     fi
     experiment_cmorized='3km'
-    freq_in='1hr'
+    #freq_in='1hr'
     freq_out='6hr' # 3hr, 6hr
-    VAR_LIST=('tas')  # tas, pr
+    VAR_LIST=('pr') # 'tas')  # tas, pr
 fi
 
 SELMONTH=7
 NAMEMONTH='July'
 
+# Full NorCP
+lonmin='0.85'
+lonmax='27.5'
+latmin='51.1'
+latmax='72.8'
+# Full NorCP
+#lonmin='-9.30617'
+#lonmax='44.1741'
+#latmin='49.7241'
+#latmax='73.5291'
 #17*24 grids for 12km domain, 71*93 grids for 3km domain.
-lonmin='13.0'
-lonmax='16.3'
-latmin='57.1'
-latmax='59.5'
-#lonmin='13'
-#lonmax='16'
-#latmin='56.5'
-#latmax='58.5'
+#lonmin='13.0'
+#lonmax='16.3'
+#latmin='57.1'
+#latmax='59.5'
+##lonmin='13'
+##lonmax='16'
+##latmin='56.5'
+##latmax='58.5'
 
-OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/NorCP_SSE/original/'${GCM}/
-# DAYHHMM
-if [[ "$freq_in" == "3hr" ]]; then
+OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/NorCP_full/original/'${GCM}/
+
+
+for ivar in ${VAR_LIST[@]} ; do
+
+  if [[ "$ivar" == "tas" ]] || [[ "$ivar" == "pr" ]] ; then
+       freq_in='1hr' 
+  elif [[ "$ivar" == *"ta500"* ]] || [[ "$ivar" == *"ta700"* ]] || [[ "$ivar" == *"ta850"* ]] || [[ "$ivar" == *"ta950"* ]] || [[ "$ivar" == *"ta1000"* ]]; then
+       freq_in='3hr' 
+  elif [[ "$ivar" == *"hus500"* ]] || [[ "$ivar" == *"hus700"* ]] || [[ "$ivar" == *"hus850"* ]] || [[ "$ivar" == *"hus950"* ]] || [[ "$ivar" == *"hus1000"* ]]; then
+       freq_in='3hr' 
+  elif [[ "$ivar" == *"ua500"* ]] || [[ "$ivar" == *"ua700"* ]] || [[ "$ivar" == *"ua850"* ]] || [[ "$ivar" == *"ua950"* ]] || [[ "$ivar" == *"ua1000"* ]]; then
+       freq_in='3hr' 
+  elif [[ "$ivar" == *"va500"* ]] || [[ "$ivar" == *"va700"* ]] || [[ "$ivar" == *"va850"* ]] || [[ "$ivar" == *"va950"* ]] || [[ "$ivar" == *"va1000"* ]]; then
+       freq_in='3hr' 
+  elif [[ "$ivar" == *"zg500"* ]] || [[ "$ivar" == *"zg700"* ]] || [[ "$ivar" == *"zg850"* ]] || [[ "$ivar" == *"zg950"* ]] || [[ "$ivar" == *"zg1000"* ]]; then
+       freq_in='6hr' 
+  fi
+
+  # DAYHHMM
+  if [[ "$freq_in" == "3hr" ]]; then
     FIRST_DAYHHMM_IN=010000 # 3hr
     LAST_DAYHHMM_IN=312100  # 3hr
-elif [[ "$freq_in" == "6hr" ]]; then
+  elif [[ "$freq_in" == "6hr" ]]; then
     FIRST_DAYHHMM_IN=010000 # 6hr
     LAST_DAYHHMM_IN=311800  # 6hr
-elif [[ "$freq_in" == "1hr" ]]; then
-    if [[ " ${VAR_LIST[*]} " == *" tas "* ]]; then
+  elif [[ "$freq_in" == "1hr" ]]; then
+    if [[ " $ivar " == *" tas "* ]]; then
         FIRST_DAYHHMM_IN=010000 # tas
         LAST_DAYHHMM_IN=312300  # tas
-    elif [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+    elif [[ " $ivar " == *" pr "* ]]; then
         FIRST_DAYHHMM_IN=010030 # pr
         LAST_DAYHHMM_IN=312330  # pr
     fi
-fi
+  fi
 
-if [[ "$freq_out" == "3hr" ]]; then
-    if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+  if [[ "$freq_out" == "3hr" ]]; then
+    if [[ " $ivar " == *" pr "* ]]; then
         FIRST_DAYHHMM_OUT=010130 # 3hr
         LAST_DAYHHMM_OUT=312230  # 3hr
     else
         FIRST_DAYHHMM_OUT=010000 # 3hr
         LAST_DAYHHMM_OUT=312100  # 3hr
     fi
-elif [[ "$freq_out" == "6hr" ]]; then
-    if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+  elif [[ "$freq_out" == "6hr" ]]; then
+    if [[ " $ivar " == *" pr "* ]]; then
         FIRST_DAYHHMM_OUT=010300 # 6hr
         LAST_DAYHHMM_OUT=312100  # 6hr
     else
         FIRST_DAYHHMM_OUT=010000 # 6hr
         LAST_DAYHHMM_OUT=311800  # 6hr
     fi
-fi
-
-
-for ivar in ${VAR_LIST[@]} ; do
+  fi
 
   yy=${FIRST_YEAR}
   while [ ${yy} -le ${LAST_YEAR} ]; do
@@ -180,23 +210,36 @@ for ivar in ${VAR_LIST[@]} ; do
     outfile_smalldomain=${ivar}_${experiment}_${freq_in}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_IN}${connect_date_out}${yy}${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
     outfile_newfreq=${ivar}_${experiment}_${freq_out}_${yy}${FIRST_MONTH}${FIRST_DAYHHMM_OUT}${connect_date_out}${yy}${LAST_MONTH}${LAST_DAYHHMM_OUT}'_smalldomain.nc'
 
-    cdo sellonlatbox,$lonmin,$lonmax,$latmin,$latmax $indir/$infile $outdir/$outfile_smalldomain
+    # Extract the grid definition of the fine file
+    #cdo griddes file_fine.nc > fine_grid.txt
+
+    #cdo sellonlatbox,`cdo -s infon file_fine.nc | awk 'NR==2 {print $9","$11","$13","$15}'` file_coarse.nc file_cropped.nc
+    if [[ " $EXP " == *" NorCP12 "* ]]; then
+        cdo sellonlatbox,$lonmin,$lonmax,$latmin,$latmax $indir/$infile $outdir/$outfile_smalldomain
+        echo 'NorCP12 sellonlatbox'
+    elif [[ " $EXP " == *" NorCP3 "* ]]; then
+        cp $indir/$infile $outdir/$outfile_smalldomain
+        echo 'NorCP3 cp'
+    fi
 
     if [[ "$freq_in" == "1hr" ]] && [[ "$freq_out" == "3hr" ]] ; then
-        if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        #if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        if [[ " $ivar " == *" pr "* ]]; then
             cdo timselmean,3 $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         else
             #cdo select,timestep=$(seq 1 3 8808 | shuf | tr '\n' ',' | sed '$s/,$/\n/') tas_12km_1hr_200001010000${connect_date_out}200912312300.nc tas_12km_3hr_200001010000${connect_date_out}200912312300.nc
             cdo select,timestep=$(seq 1 3 8808 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         fi
     elif [[ "$freq_in" == "1hr" ]] && [[ "$freq_out" == "6hr" ]] ; then
-        if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        #if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        if [[ " $ivar " == *" pr "* ]]; then
             cdo timselmean,6 $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         else
             cdo select,timestep=$(seq 1 6 8808 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         fi
     elif [[ "$freq_in" == "3hr" ]] && [[ "$freq_out" == "6hr" ]] ; then
-        if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        #if [[ " ${VAR_LIST[*]} " == *" pr "* ]]; then
+        if [[ " $ivar " == *" pr "* ]]; then
             cdo timselmean,2 $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         else
             cdo select,timestep=$(seq 1 2 3000 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
@@ -219,7 +262,7 @@ for ivar in ${VAR_LIST[@]} ; do
   rm $outdir/$outfile_all 
   rm $outdir/${ivar}_${experiment}_${freq_in}_*${FIRST_MONTH}${FIRST_DAYHHMM_IN}${connect_date_out}*${LAST_MONTH}${LAST_DAYHHMM_IN}'_smalldomain.nc'
   mv $outdir/$outfile_merge  $outdir/$outfile_merge_cmorized
-  cdo selmon,${SELMONTH} $outdir/$outfile_merge_cmorized $outdir/$outfile_month
+  #cdo selmon,${SELMONTH} $outdir/$outfile_merge_cmorized $outdir/$outfile_month
 
 done #ivar
 
