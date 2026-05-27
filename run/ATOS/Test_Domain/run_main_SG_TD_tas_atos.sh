@@ -1,17 +1,17 @@
 #!/bin/bash 
-###SBATCH -N 1
-#SBATCH --nodes 1
-#SBATCH -t 3:00:00 
-#SBATCH -J SGTDpr 
-#SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH -N 1
+###SBATCH --nodes 1
+
+#SBATCH -t 03:00:00 
+#SBATCH -J SGTDtas
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH --gpus=2
 #SBATCH --qos=ng
-###SBATCH --qos=np
-###SBATCH --mem-per-cpu=4G
+##BATCH --mem-per-cpu=4G
 
-###SBATCH --ntasks=8
+###SBATCH --ntasks=128
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=32
@@ -20,9 +20,8 @@
 #export TF_DETERMINISTIC_OPS=1
 export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
 
-#DOMAIN='EmiliaRomagna'
 DOMAIN='TestDomain'
-VARIABLE='pr'
+VARIABLE='tas'
 GCM='ERAI'
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
