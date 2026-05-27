@@ -126,6 +126,14 @@
     ```
 
 </details>
+
+
+<details close>
+<summary> $\textcolor{Blue}{\textsf{<u> Evaluation </u>}}$ </summary>
+
+    Please refer to ClimulatorScore (https://github.com/fuxingwang2018/ClimulatorScore), which is developed to evaluate ML emulator outputs.
+
+</details>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
