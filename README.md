@@ -26,9 +26,6 @@
  pip install mlxtend
  pip install keras
 
- #module load python3/3.10.10-01
- #cd $PERM/venvs
- #python3 -m venv --system-site-packages climulator2
 ```
 
 ### On LUMI
@@ -87,28 +84,47 @@
 <summary> $\textcolor{Blue}{\textsf{<u> How to run </u>}}$ </summary>
     
  1. Create a new folder to run experiments
-    To not pollute the git repository, we suggest to create a new folder and copy the configuration file to the new folder.
-    (example on ATOS)
-    ```
-    mkdir -p $HOME/<name-of-the-new-folder>
-    cd $HOME/<name-of-the-new-folder>
-    mkdir config
-    mkdir -p run/ATOS
-    cp <path-to-climulator>/config/config_main_SG_TestDomain_tas_atos.ini config/
-    cp <path-to-climulator>/run/ATOS/run_main_SG_TD_tas_atos.sh run/ATOS/
 
+    For example, on ATOS:
     ```
+    mkdir -p <path-to-climulator>/run/ATOS/<name-of-the-new-folder>
+    mkdir -p <path-to-climulator>/config/ATOS/<name-of-the-new-folder>
+    ```
+    (```path-to-climulator``` can be ```$HOME/Scripts/Climulator/``` where the repo is located)
+    ```
+    cd <path-to-climulator>
+
+    cp config/ATOS/Test_Domain/config_main_SG_TestDomain_tas_atos.ini config/ATOS/<name-of-the-new-folder> <path-to-climulator>/
+
+    cp run/ATOS/Test_Domain/run_main_SG_TD_tas_atos.sh run/ATOS/<name-of-the-new-folder> <path-to-climulator>/
+    ```
+    If needed, change file names of config_main_SG_TestDomain_tas_atos.ini  and run_main_SG_TD_tas_atos.sh.
  
  2. Configure settings in config_main.ini and run.sh
  
-    to come ...
+    In run.sh (e.g., run_main_SG_TD_tas_atos.sh), change the gpus/memory setup, and make sure the correct config_main.ini (e.g., config_main_SG_TestDomain_tas_atos.ini) is used.
  
+    In config_main.ini (e.g., config_main_SG_TestDomain_tas_atos.ini), change the domain, date, path/file information in SETTINGS, and change the SRGAN model parameters in STATISTICS.
+
  3. Run
     ```
-    cd $HOME/<name-of-the-new-folder>/run/ATOS
-    sbatch run_main_SG_TD_tas_atos.sh 
+    cd <path-to-climulator>
+    sbatch run/ATOS/run_main_SG_TD_tas_atos.sh
     ```
- 
+
+4. Outputs
+
+    Outputs are set by path_main in config_main_*.ini. e.g., in config/ATOS/Test_Domain/config_main_SG_TestDomain_tas_atos.ini     
+    ```
+    path_main = '/ec/res4/scratch/smf/HCLIMAI/Test_Domain/SG/'
+    ```
+     
+    The path to logs is set in run_*.sh. e.g., in     
+    run/ATOS/Test_Domain/run_main_SG_TD_tas_atos.sh
+    ```
+    #SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
+    ```
+
 </details>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
