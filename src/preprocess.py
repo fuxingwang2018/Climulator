@@ -461,7 +461,7 @@ class PreProcess(object):
         if method == 'scale_over_time':
 
             scaler = MinMaxScaler()
-            var_scaled = np.zeros_like(var)
+            var_scaled = np.zeros_like(var) #, dtype=float)
 
             for i in range(var.shape[1]):          # loop over grid cells
                 col = var[:, i]
@@ -477,7 +477,7 @@ class PreProcess(object):
 
             scaler = MinMaxScaler()
             var_T = var.T                          # shape: (space, time)
-            var_scaled_T = np.zeros_like(var_T)
+            var_scaled_T = np.zeros_like(var_T) #, dtype=float)
 
             for i in range(var_T.shape[0]):        # loop over each grid cell across time
                 row = var_T[i]
@@ -495,7 +495,7 @@ class PreProcess(object):
             flat = var.flatten()
             mask = ~np.isnan(flat)
 
-            flat_scaled = np.zeros_like(flat)
+            flat_scaled = np.zeros_like(flat) #, dtype=float)
             flat_scaled[mask] = scaler.fit_transform(flat[mask, None]).ravel()
 
             var_scaled = flat_scaled.reshape(shape)

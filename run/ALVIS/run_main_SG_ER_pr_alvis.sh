@@ -5,7 +5,7 @@
 #SBATCH --gpus-per-node=A100:3 
 #SBATCH --cpus-per-task=48
 #SBATCH -t 05:00:00
-#SBATCH -J SGERtas
+#SBATCH -J SGERpr
 #SBATCH --chdir=/mimer/NOBACKUP/groups/naiss2025-6-138/HCLIMAI/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -19,7 +19,7 @@
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
-VARIABLE='tas'
+VARIABLE='pr'
 
 echo 'domain is' ${DOMAIN}
 

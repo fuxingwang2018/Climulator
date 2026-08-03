@@ -5,7 +5,7 @@
 #SBATCH --gpus-per-node=A100:3 
 #SBATCH --cpus-per-task=48
 #SBATCH -t 05:00:00
-#SBATCH -J SGERtas
+#SBATCH -J SGERpr2
 #SBATCH --chdir=/mimer/NOBACKUP/groups/naiss2025-6-138/HCLIMAI/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -19,7 +19,7 @@
 
 DOMAIN='EmiliaRomagna'
 #DOMAIN='TestDomain'
-VARIABLE='tas'
+VARIABLE='pr'
 
 echo 'domain is' ${DOMAIN}
 
@@ -43,7 +43,7 @@ echo Check https://job.c3se.chalmers.se/alvis/$SLURM_JOB_ID for GPU usage.
 set -exu 
 
 cd $HOME/Climulator/src
-python3 main.py -c ../config/ALVIS/config_main_SG_${DOMAIN}_${VARIABLE}_alvis.ini 
+python3 main.py -c ../config/ALVIS/config_main_SG_${DOMAIN}_${VARIABLE}_alvis_v2.ini 
 
 #cd $HOME/Climulator
 #python -m pytest

@@ -127,6 +127,9 @@ def generator_loss_origin(fake_Y, hr_predic, hr_target):
 
 def discriminator_loss(real_Y, fake_Y):
 
+    real_Y = tf.cast(real_Y, tf.float32)
+    fake_Y = tf.cast(fake_Y, tf.float32)
+
     # Define loss function with correct reduction
     num_gpus = gpus_func.get_num_gpus()
     #cross_entropy = losses.BinaryCrossentropy()
@@ -170,10 +173,10 @@ def discriminator_loss(real_Y, fake_Y):
         #real_loss = tf.reduce_sum(real_loss) / tf.cast(global_batch_size, tf.float32)
         #fake_loss = tf.reduce_sum(fake_loss) / tf.cast(global_batch_size, tf.float32)
 
-    tf.print('real_loss:', real_loss, 'fake_loss:', fake_loss)
-    tf.print("Val Real_Y Max:", tf.reduce_max(real_Y), "Min:", tf.reduce_min(real_Y))
+    #tf.print('real_loss:', real_loss, 'fake_loss:', fake_loss)
+    #tf.print("Val Real_Y Max:", tf.reduce_max(real_Y), "Min:", tf.reduce_min(real_Y))
     disc_loss = 0.5 * (real_loss + fake_loss)
-    tf.print(">>> DEBUG BATCH LOSS:", disc_loss)
+    #tf.print(">>> DEBUG BATCH LOSS:", disc_loss)
 
     return disc_loss, real_loss, fake_loss
 
@@ -207,6 +210,10 @@ def generator_loss_default(fake_Y, hr_predic, hr_target):
 
 
 def generator_loss(fake_Y, hr_predic, hr_target):
+
+    fake_Y = tf.cast(fake_Y, tf.float32)
+    hr_predic = tf.cast(hr_predic, tf.float32)
+    hr_target = tf.cast(hr_target, tf.float32)
 
     num_gpus = gpus_func.get_num_gpus()
     #if num_gpus <= 1:
@@ -256,7 +263,7 @@ def generator_loss(fake_Y, hr_predic, hr_target):
         # content_loss = tf.reduce_sum(content_loss) / tf.cast(global_batch_size, tf.float32)
         # adversarial_loss = tf.reduce_sum(adversarial_loss) / tf.cast(global_batch_size, tf.float32)
 
-    tf.print('adversarial_loss:', adversarial_loss, 'content_loss:', content_loss)
+    #tf.print('adversarial_loss:', adversarial_loss, 'content_loss:', content_loss)
     #print('weight_adversarial, weight_content', weight_adversarial, weight_content)
 
     gen_loss = weight_content * content_loss + \

@@ -4,9 +4,9 @@
 ###SBATCH --gpus-per-node=A40:1
 #SBATCH --gpus-per-node=A100:3 
 #SBATCH --cpus-per-task=48
-#SBATCH -t 05:00:00
-#SBATCH -J SGERtas
-#SBATCH --chdir=/mimer/NOBACKUP/groups/naiss2025-6-138/HCLIMAI/log/log_ml/
+#SBATCH -t 02:00:00
+#SBATCH -J SGdetec
+#SBATCH --chdir=/mimer/NOBACKUP/groups/naiss2025-6-138/HCLIMAI/log/log_detec/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 
@@ -43,7 +43,7 @@ echo Check https://job.c3se.chalmers.se/alvis/$SLURM_JOB_ID for GPU usage.
 set -exu 
 
 cd $HOME/Climulator/src
-python3 main.py -c ../config/ALVIS/config_main_SG_${DOMAIN}_${VARIABLE}_alvis.ini 
+python3 main_detec.py -c ../config/ALVIS/config_main_detec_alvis.ini 
 
 #cd $HOME/Climulator
 #python -m pytest

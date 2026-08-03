@@ -2,10 +2,10 @@
 #SBATCH -A NAISS2025-1-11  -p alvis
 #SBATCH -N 1 
 ###SBATCH --gpus-per-node=A40:1
-#SBATCH --gpus-per-node=A100:3 
-#SBATCH --cpus-per-task=48
-#SBATCH -t 05:00:00
-#SBATCH -J SGERtas
+#SBATCH --gpus-per-node=A100:4
+#SBATCH --cpus-per-task=64
+#SBATCH -t 06:00:00
+#SBATCH -J SGNORpr
 #SBATCH --chdir=/mimer/NOBACKUP/groups/naiss2025-6-138/HCLIMAI/log/log_ml/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -17,9 +17,8 @@
 #export TF_FORCE_GPU_ALLOW_GROWTH=true
 #ecinteractive -g
 
-DOMAIN='EmiliaRomagna'
-#DOMAIN='TestDomain'
-VARIABLE='tas'
+DOMAIN='NorCPfull'
+VARIABLE='pr'
 
 echo 'domain is' ${DOMAIN}
 
