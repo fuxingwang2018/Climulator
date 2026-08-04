@@ -321,7 +321,7 @@ def main():
 
             # training
             trainmodel = train.TrainModel(wdir)
-            generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
+            generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS,
                 SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                 METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                 dataset_train, dataset_valid)
@@ -337,7 +337,7 @@ def main():
             with strategy.scope():
                 # training
                 trainmodel = train.TrainModel(wdir)
-                generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
+                generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS,
                     SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                     METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                     dataset_train, dataset_valid)

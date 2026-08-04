@@ -40,6 +40,8 @@ def main():
     #OUTPUT_CHANNELS = cdict['stats_conf']['TRAINING']['OUTPUT_CHANNELS']
     NX = cdict['stats_conf']['TRAINING']['NX']
     NY = cdict['stats_conf']['TRAINING']['NY']
+    TILE_NX = cdict['stats_conf']['TRAINING']['TILE_NX']
+    TILE_NY = cdict['stats_conf']['TRAINING']['TILE_NY']
     LEARNING_RATE = cdict['stats_conf']['TRAINING']['LEARNING_RATE']
     DROPOUT_RATE = cdict['stats_conf']['TRAINING']['DROPOUT_RATE']
     EARLY_STOP = cdict['stats_conf']['TRAINING']['EARLY_STOP']
@@ -92,7 +94,7 @@ def main():
     OUTPUT_CHANNELS = len(varname_predictand_high_res) #+ len(varname_const)
 
     print('TRAINING PARAMETERS:', SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, \
-            NX, NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
+            NX, NY, TILE_NX, TILE_NY, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP)
 
     scaler_dict = {
         var: (SCALER_HUS if 'hus' in var else SCALER_DEF)
@@ -285,7 +287,9 @@ def main():
     dataset_train, dataset_valid, dataset_test, X_train, X_test, const_train, const_test, y_train, y_test = \
         preproc.split_data(var_low_res_filtered_dict, var_const_high_res_scaled_dict, var_high_res_scaled_dict, \
         BATCH_SIZE, time_idx_range_test_over_target, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
-        varname_predictand_high_res[0], downscale_mode)
+        varname_predictand_high_res[0], downscale_mode,     \
+        TILE_NX=TILE_NX, TILE_NY=TILE_NY, SUBSAMPLING_LR=SUBSAMPLING_LR,
+        )
 
     """
     for batch in dataset_train.take(1):
@@ -309,7 +313,7 @@ def main():
 
             # training
             trainmodel = train.TrainModel(wdir)
-            generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
+            generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS,
                 SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                 METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                 dataset_train, dataset_valid)
@@ -325,7 +329,7 @@ def main():
             with strategy.scope():
                 # training
                 trainmodel = train.TrainModel(wdir)
-                generator = trainmodel.training(BATCH_SIZE, EPOCH_INIT, EPOCHS,
+                generator = trainmodel.training(BATCH_SIZE, num_gpus, EPOCH_INIT, EPOCHS,
                     SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
                     METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
                     dataset_train, dataset_valid)

@@ -24,7 +24,7 @@ class TrainModel(object):
 
         self.wdir = wdir
 
-    def training(self, BATCH_SIZE, EPOCH_INIT, EPOCHS, 
+    def training(self, BATCH_SIZE, NUM_GPUS, EPOCH_INIT, EPOCHS, 
         SUBSAMPLING_LR, N_RES_BLOCK, INPUT_CHANNELS, OUTPUT_CHANNELS, NX, NY, 
         METHOD, LEARNING_RATE, DROPOUT_RATE, EARLY_STOP,
         dataset_train, dataset_valid):
@@ -134,7 +134,11 @@ class TrainModel(object):
         # Start/resume training
         # Train the model with the new callback
         # Model weights are saved at the end of every epoch, if it's the best seen so far.
-        #model.build(input_shape=(int(BATCH_SIZE / max(NUM_GPUS, !)), NX, NY, INPUT_CHANNELS))
+        #NUM_GPUS = 1
+        #model.build(input_shape=(int(BATCH_SIZE / max(NUM_GPUS, 1)), NX, NY, INPUT_CHANNELS))
+
+        #sample_lr, sample_hr = next(iter(dataset_train)) 
+        #_ = model(sample_lr[:1], training=False)  # triggers build
 
         hist = model.fit(dataset_train, 
             epochs = EPOCHS, 

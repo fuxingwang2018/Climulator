@@ -81,8 +81,8 @@ class SRGAN(models.Model):
         real_ptv = self.discriminator(hr_predic, training=False)
         fake_ptv = self.discriminator(generated_batch, training=False)
 
-        gen_loss = self.gen_loss(fake_ptv, generated_batch, hr_predic)
-        disc_loss = self.disc_loss(real_ptv, fake_ptv)
+        gen_loss, content_loss, adversarial_loss = self.gen_loss(fake_ptv, generated_batch, hr_predic)
+        disc_loss, real_loss, fake_loss = self.disc_loss(real_ptv, fake_ptv)
           
         self.loss_tracker_1.update_state(gen_loss)
         self.loss_tracker_2.update_state(disc_loss)

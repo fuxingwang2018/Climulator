@@ -67,6 +67,8 @@ def default_stats_config(stats):
             'N_RES_BLOCK': 8, 
             'NX': 104,
             'NY': 88,
+            'TILE_NX': 104,
+            'TILE_NY': 88,
             'LEARNING_RATE': {'GENERATOR':1e-4, 'DISCRIMINATOR':2e-4},
             'DROPOUT_RATE': -1, 
             'EARLY_STOP':False, 

@@ -127,8 +127,8 @@ def generator_loss_origin(fake_Y, hr_predic, hr_target):
 
 def discriminator_loss(real_Y, fake_Y):
 
-    real_Y = tf.cast(real_Y, tf.float32)
-    fake_Y = tf.cast(fake_Y, tf.float32)
+    #real_Y = tf.cast(real_Y, tf.float32)
+    #fake_Y = tf.cast(fake_Y, tf.float32)
 
     # Define loss function with correct reduction
     num_gpus = gpus_func.get_num_gpus()
@@ -146,7 +146,8 @@ def discriminator_loss(real_Y, fake_Y):
     #            from_logits=False, 
     #            reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE
     #        ) 
-    ce_reduction = tf.keras.losses.Reduction.NONE if num_gpus > 1 else tf.keras.losses.Reduction.AUTO
+    #ce_reduction = tf.keras.losses.Reduction.NONE if num_gpus > 1 else tf.keras.losses.Reduction.AUTO
+    ce_reduction = "none" if num_gpus > 1 else "sum_over_batch_size"
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False, reduction=ce_reduction)
 
     # ADD INPUT NOISE
@@ -211,9 +212,9 @@ def generator_loss_default(fake_Y, hr_predic, hr_target):
 
 def generator_loss(fake_Y, hr_predic, hr_target):
 
-    fake_Y = tf.cast(fake_Y, tf.float32)
-    hr_predic = tf.cast(hr_predic, tf.float32)
-    hr_target = tf.cast(hr_target, tf.float32)
+    #fake_Y = tf.cast(fake_Y, tf.float32)
+    #hr_predic = tf.cast(hr_predic, tf.float32)
+    #hr_target = tf.cast(hr_target, tf.float32)
 
     num_gpus = gpus_func.get_num_gpus()
     #if num_gpus <= 1:
@@ -229,7 +230,8 @@ def generator_loss(fake_Y, hr_predic, hr_target):
     #            from_logits=False, 
     #            reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE
     #        )
-    ce_reduction = tf.keras.losses.Reduction.NONE if num_gpus > 1 else tf.keras.losses.Reduction.AUTO
+    #ce_reduction = tf.keras.losses.Reduction.NONE if num_gpus > 1 else tf.keras.losses.Reduction.AUTO
+    ce_reduction = "none" if num_gpus > 1 else "sum_over_batch_size"
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False, reduction=ce_reduction)
 
     adversarial_loss = cross_entropy(

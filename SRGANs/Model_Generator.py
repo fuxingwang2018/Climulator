@@ -136,6 +136,7 @@ def model_generator(nx, nz, input_channels, output_channels, subsampling, n_res_
     elif method == 'Swin':
         # Swin Transformer Block
         inputs_low_res = tf.keras.layers.UpSampling2D(size=(subsampling, subsampling))(inputs_low_res)
+        #inputs_low_res = tf.keras.layers.UpSampling2D(size=(subsampling, subsampling), interpolation='bilinear')(inputs_low_res)
         swin_output = SwinTransformer.window_partition(inputs_low_res, window_size=subsampling)  # Partition to windows
         #swin_output = SwinTransformer.SwinTransformerBlock(num_heads=4, embed_dim=64, window_size=subsampling, mlp_dim=128)(swin_output)
         swin_output = SwinTransformer.SwinTransformerBlock(num_heads=4, embed_dim=input_channels, window_size=subsampling, mlp_dim=128)(swin_output)
@@ -246,6 +247,7 @@ def up_sampling_block(model, kernal_size, filters, strides):
     #model = Conv2DTranspose(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
     model = tf.keras.layers.Conv2D(filters = filters, kernel_size = kernal_size, strides = strides, padding = "same")(model)
     model = tf.keras.layers.UpSampling2D(size = 2)(model)
+    #model = tf.keras.layers.UpSampling2D(size = 2, interpolation='bilinear')(model)
     # model = SubpixelConv2D(model.shape, scale=2)(model)
     model = tf.keras.layers.LeakyReLU(alpha = 0.2)(model)
     

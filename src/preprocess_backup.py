@@ -65,9 +65,8 @@ class PreProcess(object):
 
         return scaler, var
 
-
     def scale_dict(self, var_dict_in, scaler_dict, method, predonly, scaler_path, resolution):
-
+        
         """
         Scale data to same magnitude 
 
@@ -76,15 +75,19 @@ class PreProcess(object):
         :return: scaled data, var
         :rtype: array
         """
+        """
 
         var_dict_out = {}
-        #for key, values in var_dict_in.items():
-        #    #print(type(values), values.shape)
-        #    var_dict_out[key] = self.scale_var(values, scaler_dict, method, key, predonly, scaler_path, resolution)
-        #    #print('scale key:', key)
-        #    del values
+        for key, values in var_dict_in.items():
+            #print(type(values), values.shape)
+            var_dict_out[key] = self.scale_var(values, scaler_dict, method, key, predonly, scaler_path, resolution)
+            #print('scale key:', key)
+            del values
 
+        return var_dict_out
+        """
 
+        var_dict_out = {}
         keys = list(var_dict_in.keys())
         for key in keys:
             log_mem(f"before scaling {key}")
@@ -112,7 +115,7 @@ class PreProcess(object):
         """
 
         var_dict_out = {}
-        #print('var_ref.keys:', var_ref.keys())
+        print('var_ref.keys:', var_ref.keys())
         for key, values in var_dict_in.items():
             var_dict_out[key] = self.inverse_var(values, var_ref[key], key, scaler_dict, scaler_path, resolution)
             print('inverse key:', key)
@@ -677,6 +680,95 @@ class PreProcess(object):
         return (data_x, data_const), data_y
 
 
+    def random_tile_sample_v1(self, inputs, target, tile_size_lr, tile_size_hr):
+        """
+        Randomly crop a spatial tile from (lr, const, hr) triple.
+     
+        Args:
+            inputs:      tuple of (lr_sample, const_sample), shapes (H_lr, W_lr, C_lr) and (H_hr, W_hr, C_const)
+            target:      hr_sample, shape (H_hr, W_hr, C_hr)
+            tile_size_lr: spatial tile size in LR space (e.g. 64)
+            tile_size_hr: spatial tile size in HR space (= tile_size_lr * upscale_factor)
+     
+        Returns:
+            ((lr_tile, const_tile), hr_tile)
+        """
+        lr_sample, const_sample = inputs
+     
+        lr_h = tf.shape(lr_sample)[0]
+        lr_w = tf.shape(lr_sample)[1]
+     
+        # Random top-left corner in LR space
+        max_y = lr_h - tile_size_lr
+        max_x = lr_w - tile_size_lr
+        y_lr = tf.random.uniform((), 0, max_y, dtype=tf.int32)
+        x_lr = tf.random.uniform((), 0, max_x, dtype=tf.int32)
+     
+        # Corresponding top-left corner in HR space
+        y_hr = y_lr * (tile_size_hr // tile_size_lr)
+        x_hr = x_lr * (tile_size_hr // tile_size_lr)
+     
+        # Crop LR
+        lr_tile = lr_sample[y_lr:y_lr + tile_size_lr, x_lr:x_lr + tile_size_lr, :]
+     
+        # Crop const (HR resolution)
+        const_tile = const_sample[y_hr:y_hr + tile_size_hr, x_hr:x_hr + tile_size_hr, :]
+     
+        # Crop HR target
+        hr_tile = target[y_hr:y_hr + tile_size_hr, x_hr:x_hr + tile_size_hr, :]
+     
+        return (lr_tile, const_tile), hr_tile
+
+
+    # <<< CHANGED v2 >>> Added scale_factor derived from SUBSAMPLING_LR, added shape assertions
+    def random_tile_sample_v2(self, inputs, target, tile_size_lr, scale_factor):
+        """
+        Randomly crop a spatial tile from (lr, const, hr) triple.
+        tile_size_hr is derived automatically as tile_size_lr * scale_factor.
+
+        Args:
+            inputs:       tuple of (lr_sample, const_sample)
+                          lr_sample shape:    (H_lr, W_lr, C_lr)
+                          const_sample shape: (H_hr, W_hr, C_const)
+            target:       hr_sample, shape (H_hr, W_hr, C_hr)
+            tile_size_lr: spatial tile size in LR space (e.g. 64)
+            scale_factor: upsampling factor = SUBSAMPLING_LR (e.g. 4)
+                          tile_size_hr = tile_size_lr * scale_factor computed here
+        Returns:
+            ((lr_tile, const_tile), hr_tile)
+        """
+        lr_sample, const_sample = inputs
+
+        tile_size_hr = tile_size_lr * scale_factor   # <<< CHANGED v2 >>> derived, not passed in
+
+        lr_h = tf.shape(lr_sample)[0]
+        lr_w = tf.shape(lr_sample)[1]
+
+        # Random top-left corner in LR space
+        # Ensure max_y/max_x >= 1 to avoid invalid range
+        max_y = tf.maximum(lr_h - tile_size_lr, 1)   # <<< CHANGED v2 >>> added tf.maximum guard
+        max_x = tf.maximum(lr_w - tile_size_lr, 1)   # <<< CHANGED v2 >>> added tf.maximum guard
+        y_lr = tf.random.uniform((), 0, max_y, dtype=tf.int32)
+        x_lr = tf.random.uniform((), 0, max_x, dtype=tf.int32)
+
+        # Corresponding top-left corner in HR space
+        y_hr = y_lr * scale_factor
+        x_hr = x_lr * scale_factor
+
+        # Crop LR
+        lr_tile = lr_sample[y_lr:y_lr + tile_size_lr, x_lr:x_lr + tile_size_lr, :]
+
+        # Crop const (HR resolution)
+        const_tile = const_sample[y_hr:y_hr + tile_size_hr, x_hr:x_hr + tile_size_hr, :]
+
+        # Crop HR target
+        hr_tile = target[y_hr:y_hr + tile_size_hr, x_hr:x_hr + tile_size_hr, :]
+
+        return (lr_tile, const_tile), hr_tile
+    # <<< END CHANGED v2 >>>
+
+
+    # <<< CHANGED v3 >>> Support rectangular tiles with separate x/y tile sizes
     def random_tile_sample(self, inputs, target, tile_size_lr_y, tile_size_lr_x, scale_factor):
         """
         tile_size_lr_y: LR tile height (NY // scale_factor)
@@ -703,13 +795,16 @@ class PreProcess(object):
         hr_tile    = target      [y_hr:y_hr + tile_size_hr_y, x_hr:x_hr + tile_size_hr_x, :]
 
         return (lr_tile, const_tile), hr_tile
+    # <<< END CHANGED v3 >>>
 
 
     def split_data(self, var_lr, var_const_hr, var_hr, batch_size, TEST_SIZE, VALIDATION_SPLIT, RANDOM_STATE, DATA_AUGMENTATION, \
             variable, downscale_mode,  \
-            TILE_NX=None, \
-            TILE_NY=None, \
-            SUBSAMPLING_LR=1):         
+            #TILE_SIZE_LR=None,          # <<< CHANGED v2 >>> only LR tile size needed now
+            NX=None,            # <<< CHANGED v3 >>> HR tile width  (e.g. 424)
+            NY=None,            # <<< CHANGED v3 >>> HR tile height (e.g. 352)
+            SUBSAMPLING_LR=1):          # <<< CHANGED v2 >>> added SUBSAMPLING_LR (= scale factor)
+            #TILE_SIZE_LR=None, TILE_SIZE_HR=None):
 
         """
         Split dataset into subsets 
@@ -834,14 +929,22 @@ class PreProcess(object):
                 const_train = np.empty_like(y_train)
                 const_test  = np.empty_like(y_test)
 
-
-
         #X_train = np.asarray(X_train)
         #y_train = np.asarray(y_train)
         #X_test = np.asarray(X_test)
         #y_test = np.asarray(y_test)
         print('Training dataset shape:', X_train.shape, const_train.shape, y_train.shape)
         print('Testing dataset shape:', X_test.shape, const_test.shape, y_test.shape)
+
+        """
+        # <<< CHANGED v2 >>> Print tile sizes to verify they match model NX/NY before training
+        if TILE_SIZE_LR is not None:
+            tile_size_hr = TILE_SIZE_LR * SUBSAMPLING_LR
+            print(f'Tiling: LR tile={TILE_SIZE_LR}, HR tile={tile_size_hr} '
+                  f'(= {TILE_SIZE_LR} x SUBSAMPLING_LR={SUBSAMPLING_LR})')
+            print(f'>>> Verify this matches your config NX={tile_size_hr}, NY={tile_size_hr} <<<')
+        # <<< END CHANGED v2 >>>
+        """
 
         #if var_const_hr:
         with tf.device("CPU"):
@@ -853,12 +956,48 @@ class PreProcess(object):
         print('dataset_train_all 0 shape:', dataset_train_all.element_spec)
         print('dataset_test 0 shape:', dataset_test.element_spec)
 
-        # derive LR tile sizes from TILE_NX, TILE_NY, SUBSAMPLING_LR
-        if TILE_NX is not None and TILE_NY is not None:
-            tile_size_lr_x = TILE_NX // SUBSAMPLING_LR   # = 106
-            tile_size_lr_y = TILE_NY // SUBSAMPLING_LR   # = 88
+        """
+        # This replaces full-domain samples with random spatial tiles,
+        # reducing tensor size fed to ResizeNearestNeighbor and avoiding CUDA kernel limit crash.
+        # Set TILE_SIZE_LR and TILE_SIZE_HR in your config/call to enable.
+        # Set both to None to disable tiling and keep original full-domain behaviour.
+        if TILE_SIZE_LR is not None and TILE_SIZE_HR is not None:
+            print(f'Tiling enabled: LR tile={TILE_SIZE_LR}, HR tile={TILE_SIZE_HR}')  # <<< NEW >>>
+            tile_fn = lambda inputs, target: self.random_tile_sample(            # <<< NEW >>>
+                inputs, target, TILE_SIZE_LR, TILE_SIZE_HR)                 # <<< NEW >>>
+            dataset_train_all = dataset_train_all.map(                      # <<< NEW >>>
+                tile_fn, num_parallel_calls=tf.data.AUTOTUNE)               # <<< NEW >>>
+            dataset_test = dataset_test.map(                                # <<< NEW >>>
+                tile_fn, num_parallel_calls=tf.data.AUTOTUNE)               # <<< NEW >>>
+        else:                                                               # <<< NEW >>>
+            print('Tiling disabled: using full spatial domain')             # <<< NEW >>>
+        """
+        """
+        # <<< CHANGED v2 >>> Tiling applied after augmentation, before batching
+        # scale_factor = SUBSAMPLING_LR ensures HR tile matches generator output shape exactly
+        if TILE_SIZE_LR is not None:
+            tile_fn = lambda inputs, target: self.random_tile_sample(
+                inputs, target,
+                tile_size_lr=TILE_SIZE_LR,
+                scale_factor=SUBSAMPLING_LR)           # <<< CHANGED v2 >>> pass scale_factor not tile_size_hr
+            dataset_train_all = dataset_train_all.map(
+                tile_fn, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset_test = dataset_test.map(
+                tile_fn, num_parallel_calls=tf.data.AUTOTUNE)
+            print(f'Tiling applied. New element spec after tiling:')
+            print('  dataset_train_all:', dataset_train_all.element_spec)
+            print('  dataset_test:     ', dataset_test.element_spec)
+        else:
+            print('Tiling disabled: using full spatial domain')
+        # <<< END CHANGED V2 >>>
+        """
+
+        # <<< CHANGED v3 >>> derive LR tile sizes from NX, NY, SUBSAMPLING_LR
+        if NX is not None and NY is not None:
+            tile_size_lr_x = NX // SUBSAMPLING_LR   # = 106
+            tile_size_lr_y = NY // SUBSAMPLING_LR   # = 88
             print(f'Tiling: LR=({tile_size_lr_y},{tile_size_lr_x}), '
-                  f'HR=({TILE_NY},{TILE_NX}), scale={SUBSAMPLING_LR}')
+                  f'HR=({NY},{NX}), scale={SUBSAMPLING_LR}')
 
             tile_fn = lambda inputs, target: self.random_tile_sample(
                 inputs, target,
@@ -872,6 +1011,7 @@ class PreProcess(object):
                 tile_fn, num_parallel_calls=tf.data.AUTOTUNE)
         else:
             print('Tiling disabled: using full spatial domain')
+        # <<< END CHANGED v3 >>>
 
 
         if DATA_AUGMENTATION:

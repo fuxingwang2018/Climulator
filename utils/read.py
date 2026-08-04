@@ -1,7 +1,7 @@
 import numpy as np
 import netCDF4
 import glob, re
-import sys
+import sys, gc
 import numpy as np
 
 # 3km:  tas, pr 
@@ -58,11 +58,16 @@ class Read(object):
             for ifile in nc_files:
                 data = netCDF4.Dataset(ifile)
                 #var = list(data.variables.keys())[-1]
-                var_data_ifile = np.array(data.variables[ivar])
-                if var_data_ifile.ndim > 2:
-                    var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
+                #var_data_ifile = np.array(data.variables[ivar])
+                #if var_data_ifile.ndim > 2:
+                #    var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
+                #else:
+                #    var_data_ifile_cut = var_data_ifile
+
+                if data.variables[ivar].ndim > 2:
+                    var_data_ifile_cut = np.array(data.variables[ivar][time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]])
                 else:
-                    var_data_ifile_cut = var_data_ifile
+                    var_data_ifile_cut = np.array(data.variables[ivar])
 
                 if icount == 0:
                     #var_data = np.array(data.variables[ivar])
@@ -77,6 +82,8 @@ class Read(object):
 
                 icount += 1
                 data.close()
+                del var_data_ifile_cut
+                gc.collect()
             #if time_idx_range is not None:
             #if var_data.ndim > 2:
             #    var_dict[ivar] = var_data[time_idx_range['start_idx']: time_idx_range['end_idx']] #np.array(data.variables[var])
@@ -87,6 +94,26 @@ class Read(object):
             var_list_nc.append(ivar)
             print('shape var_dict[ivar]', np.shape(var_dict[ivar]))
         print('Variables Read:', var_list_nc)
+        """
+        for ivar, nc_files in nc_files_dict.items():
+            var_data_list = []
+            for icount, ifile in enumerate(nc_files):
+                data = netCDF4.Dataset(ifile)
+                var_data_ifile = np.array(data.variables[ivar])
+                if var_data_ifile.ndim > 2:
+                    var_data_ifile_cut = var_data_ifile[time_idx_range['start_idx'][icount]: time_idx_range['end_idx'][icount]]
+                else:
+                    var_data_ifile_cut = var_data_ifile
+                var_data_list.append(var_data_ifile_cut)
+                data.close()
+            if var_data_list[0].ndim > 2:
+                var_data = np.concatenate(var_data_list, axis=0)  # ONE concat at the end
+            else:
+                var_data = var_data_list[-1]
+            var_dict[ivar] = var_data
+        """
+
+
         #print('var_dict time:', var_dict['time'])
 
         #var_nc = np.array(var_dict['pr'])
