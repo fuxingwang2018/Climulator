@@ -133,6 +133,8 @@ class PreProcess(object):
 
         var_dict_out = {}
         for key, values in var_dict_in.items():
+            if np.asarray(values).size == 0:
+                print(f"DEBUG: Variable '{key}' is empty!")
             #print(type(values), values.shape)
             var_dict_out[key] = np.divide(values, np.nanmax(values))
             print('scale key:', key)

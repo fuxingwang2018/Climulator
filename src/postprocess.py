@@ -14,7 +14,7 @@ class PostProcess(object):
 
     def plot_result(self, y_pred, X_test, y_test, path_figure, X_name, y_name):
 
-        n = [15, 50]
+        n = [5, 15]
         nt_Xtest, nx_Xtest, ny_Xtest, nv_Xtest = np.shape(X_test)
         nrow, ncol = 3, (nv_Xtest + 2)//3 + 1 
 
@@ -44,7 +44,7 @@ class PostProcess(object):
 
     def plot_input_data(self, var_low_res_dict, var_high_res_dict, path_figure):
 
-        n = [15, 200]
+        n = [5, 15]
         nvar_low_res, nvar_high_res  = len(var_low_res_dict), len(var_high_res_dict)
         nvar = nvar_low_res + nvar_high_res
         nrow, ncol = 3, nvar//3 + 1 #max(nvar_high_res, nvar_low_res)
