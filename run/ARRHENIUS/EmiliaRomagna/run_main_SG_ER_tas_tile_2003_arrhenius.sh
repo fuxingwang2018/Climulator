@@ -1,8 +1,8 @@
 #!/bin/bash 
 #SBATCH -A NAISS2026-4-912-gpu
 #SBATCH -N 1
-#SBATCH -t 06:00:00
-#SBATCH -J SGERtt09
+#SBATCH -t 05:00:00
+#SBATCH -J SGERtt03
 #SBATCH --chdir=/nobackup/proj/disk/hclimai/personal/fuxing/log/log_climulator/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -35,7 +35,7 @@ DOMAIN='EmiliaRomagna'
 VARIABLE='tas'
 GCM='ERAI'
 EXPNAME='wsmto_tile'
-TESTYEAR='2009'
+TESTYEAR='2003'
 
 echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
 

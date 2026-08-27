@@ -1,8 +1,8 @@
 #!/bin/bash 
 #SBATCH -A NAISS2026-4-912-gpu
 #SBATCH -N 1
-#SBATCH -t 01:00:00
-#SBATCH -J SGERt03
+#SBATCH -t 05:00:00
+#SBATCH -J SGERpt03
 #SBATCH --chdir=/nobackup/proj/disk/hclimai/personal/fuxing/log/log_climulator/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -32,9 +32,9 @@ current_date_time="`date`";
 echo The run starts from $current_date_time
 
 DOMAIN='EmiliaRomagna'
-VARIABLE='tas'
+VARIABLE='pr'
 GCM='ERAI'
-EXPNAME='wsmto'
+EXPNAME='wsmpo_tile'
 TESTYEAR='2003'
 
 echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
