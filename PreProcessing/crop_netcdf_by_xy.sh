@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -t 3:00:00
-#SBATCH -J CropNorCP
+#SBATCH -t 01:00:00
+#SBATCH -J CropER
 #SBATCH -e slurm_error.txt
 #SBATCH -o slurm_output.txt
 #SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log_stats/
@@ -12,20 +12,20 @@
 
 
 # Define the base input directory
-EXP='NorCP'
-#EXP='FPS'
-#DOMAIN="Emilia_Romagna"
+#EXP='NorCP'
+EXP='FPS'
+DOMAIN="Emilia_Romagna"
 #DOMAIN="NorCP_SSE"
-DOMAIN="NorCP_full"
-resolution="3km" #12km
+#DOMAIN="NorCP_full"
+resolution="3km" #"3km" #12km
 #GCM="ECMWF-ERAINT" 
 #GCM="ICHEC-EC-EARTH_HIST" 
-#GCM="ICHEC-EC-EARTH_RCP85_MC"
+GCM="ICHEC-EC-EARTH_RCP85_MC"
 #GCM="ICHEC-EC-EARTH_RCP85_LC"
 #GCM="ICHEC-EC-EARTH_RCP45_MC"
-GCM="ICHEC-EC-EARTH_RCP45_LC"
-input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/original/"${GCM}"/"${resolution}
-output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/cropped/"${GCM}"/"${resolution}
+#GCM="ICHEC-EC-EARTH_RCP45_LC"
+input_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/original/"${GCM}"/"${resolution}"/day/"
+output_base_dir="/nobackup/rossby26/users/sm_fuxwa/AI/"${DOMAIN}"/cropped/"${GCM}"/"${resolution}"/day/"
 
 mkdir -p "$output_base_dir"  # Create output base directory if it doesn't exist
 
@@ -71,7 +71,7 @@ process_directory() {
 
     # Loop through all NetCDF files in the current directory
     #for file in "$input_dir"/*950*_*.nc; do
-    for file in "$input_dir"/*.nc; do
+    for file in "$input_dir"/*snw*.nc; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")  # Extract the filename
             output_file="$output_dir/$filename"

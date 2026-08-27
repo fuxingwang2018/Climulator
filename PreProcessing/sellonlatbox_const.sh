@@ -14,15 +14,16 @@
 
 module load CDO/2.3.0-eccodes-aec-cmor-fftw-hpc2-intel-2023a-eb
 
-EXP='NorCP3'
-GCM="ECMWF-ERAINT"
+EXP='NorCP12'
+#GCM="ECMWF-ERAINT"
 #GCM="ICHEC-EC-EARTH_HIST" 
 #GCM="ICHEC-EC-EARTH_RCP85_MC"
 #GCM="ICHEC-EC-EARTH_RCP85_LC"
 #GCM="ICHEC-EC-EARTH_RCP45_MC"
-#GCM="ICHEC-EC-EARTH_RCP45_LC"
+GCM="ICHEC-EC-EARTH_RCP45_LC"
 #DOMAIN='Emilia_Romagna'
-DOMAIN='NorCP_SSE'
+#DOMAIN='NorCP_SSE'
+DOMAIN='NorCP_full'
 
 freq_in='fx'
 freq_out='fx'
@@ -115,10 +116,24 @@ fi
 
 if [[ "$EXP" == "NorCP12" || "$EXP" == "NorCP3" ]]; then
     OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/original/'${GCM}/
-    lonmin='13.0'
-    lonmax='16.3'
-    latmin='57.1'
-    latmax='59.5'
+    if [[ "$DOMAIN" == "NorCP_SSE" ]]; then
+        lonmin='13.0'
+        lonmax='16.3'
+        latmin='57.1'
+        latmax='59.5'
+    elif [[ "$DOMAIN" == "NorCP_full" ]]; then
+        if [[ "$EXP" == "NorCP12" ]]; then
+            lonmin='0.85'
+            lonmax='27.5'
+            latmin='51.1'
+            latmax='72.8'
+        elif [[ "$EXP" == "NorCP3" ]]; then
+            lonmin='-9.30617'
+            lonmax='44.1741'
+            latmin='49.7241'
+            latmax='73.5291'
+        fi
+    fi
 else
     if [[ "$DOMAIN" == "Test_Domain" ]]; then
         OUT_PATH='/nobackup/rossby26/users/sm_fuxwa/AI/'$DOMAIN'/'$GCM/

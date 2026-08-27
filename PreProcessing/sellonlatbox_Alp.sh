@@ -1,15 +1,28 @@
 #!/bin/bash
+#SBATCH -N 1 
+#SBATCH -t 01:00:00 
+###SBATCH -n 1  ##ntasks 
+###SBATCH --mem=16G
+#SBATCH -J prep 
+#SBATCH --chdir=/nobackup/rossby26/users/sm_fuxwa/AI/log_stats
+###SBATCH --chdir=/nobackup/rossby27/users/sm_yicwa/PROJECTS/01-PROJ_emulator/04-evaluation_fuxing/ClimulatorScore
+#SBATCH --error=%x-%j.error 
+#SBATCH --output=%x-%j.out
+###SBATCH --ntasks=1
+#SBATCH -A rossby
+###SBATCH --qos=low
 
-EXP='FPS12' #FPS12
+module load CDO/2.3.0-eccodes-aec-cmor-fftw-hpc2-intel-2023a-eb
+
+EXP='FPS3' #FPS12
 FIRST_MONTH=01
 LAST_MONTH=12
-DOMAIN='Test_Domain' #Emilia_Romagna
-#DOMAIN='Emilia_Romagna'
+#DOMAIN='Test_Domain' #Emilia_Romagna
+DOMAIN='Emilia_Romagna'
 #DOMAIN='ALP'
-GCM="ECMWF-ERAINT" #"ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
+#GCM="ECMWF-ERAINT" #"ICHEC-EC-EARTH_RCP85_MC" #ECMWF-ERAINT
 #GCM="ICHEC-EC-EARTH_HIST" #, 
-#GCM="ICHEC-EC-EARTH_RCP85_LC"
-
+GCM="ICHEC-EC-EARTH_RCP85_MC"
 
 if [[ "$EXP" == "FPS12" ]]; then
     # https://en.wikipedia.org/wiki/Module:Location_map/data/Alps
@@ -38,6 +51,7 @@ if [[ "$EXP" == "FPS12" ]]; then
     fi
 
     # for mrsol, ta500..950, hus500..950, ua500..950, va500..950 (3hr), phi500..950 (6hr)
+    # snc, snw, snd (3hr)
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
         indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP12_ERAI_CMORise' 
         #same as /nobackup/rossby25/proj/rossby/joint_exp/eucp/netcdf/HCLIM38-ALADIN/ALP-12/ECMWF-ERAINT/evaluation/ but different variables
@@ -58,12 +72,12 @@ if [[ "$EXP" == "FPS12" ]]; then
     #lonmax='17'
     #latmin='42.75'
     #latmax='48.5'
-    freq_in='3hr' #1hr, 3hr, 6hr, fx
-    freq_out='6hr' #fx
+    freq_in='3hr' #'day' #'3hr' #1hr, 3hr, 6hr, fx
+    freq_out='day' #'6hr' #fx
     ## VAR_LIST=('orog' ) # orog, does not work, use sellonlatbox_const.sh
     #VAR_LIST=('tas' ) # pr, tas
     #VAR_LIST=('mrso' 'mrsol' ) # pr, tas
-    VAR_LIST=('mrsol' ) # pr, tas
+    #VAR_LIST=('mrsol' ) # pr, tas
     #VAR_LIST=('hus500' )
     #VAR_LIST=('CAPE' 'clt' 'huss' 'ps' 'uas' 'vas' ) 
     #VAR_LIST=('hfls'  'hfss'  'mrfso'  'mrso'  'mrsol'	'rlds'  'rlns'  'rsds'  'rsns')
@@ -72,6 +86,8 @@ if [[ "$EXP" == "FPS12" ]]; then
     #	'ua500' 'ua700' 'ua850' 'ua950' \
     #	'va500' 'va700' 'va850' 'va950') # 3hr
     #VAR_LIST=('phi500' 'phi700' 'phi850' 'phi950') # 6hr
+    #VAR_LIST=('snc')
+    VAR_LIST=('snd' 'snw')
 
 elif [[ "$EXP" == "FPS3" ]]; then 
     if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
@@ -96,10 +112,35 @@ elif [[ "$EXP" == "FPS3" ]]; then
         LAST_YEAR=2099
     fi
 
+    if [[ "$GCM" == "ECMWF-ERAINT" ]]; then
+        indir0=''
+        experiment='ALP-3_ECMWF-ERAINT_evaluation_r1i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1' 
+        FIRST_YEAR=2000 # 1999 available but we discard it for spinup
+        LAST_YEAR=2009
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_HIST" ]]; then
+        indir0='/nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP3_ECEARTH_HIST_CMORise/'
+        experiment='ALP-3_ICHEC-EC-EARTH_historical_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        FIRST_YEAR=1995 
+        LAST_YEAR=2005
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_MC" ]]; then
+        indir0='//nobackup/rossby26/users/sm_fuxwa/AI/CORDEX_FPS_ALP3_ECEARTH_RCP85_MC_CMORise/'
+        #experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-SMHI-HCLIM38-AROME_v1'
+        FIRST_YEAR=2040 
+        LAST_YEAR=2050
+    elif [[ "$GCM" == "ICHEC-EC-EARTH_RCP85_LC" ]]; then
+        indir0=''
+        experiment='ALP-3_ICHEC-EC-EARTH_rcp85_r12i1p1_HCLIMcom-HCLIM38-AROME_fpsconv-x2yn2-v1'
+        FIRST_YEAR=2089
+        LAST_YEAR=2099
+    fi
+
     experiment_cmorized='3km'
-    freq_in='1hr'  # '3hr' for mrsol
-    freq_out='6hr'
-    VAR_LIST=('tas') #('mrsol' 'mrso')  # mrsol, mrso, hfls, tas, pr
+    freq_in='3hr' #'1hr'  # '3hr' for mrsol
+    freq_out='day' #'6hr'
+    #VAR_LIST=('tas') #('mrsol' 'mrso')  # mrsol, mrso, hfls, tas, pr
+    #VAR_LIST=('snc' 'snd' 'snw') # 6hr
+    VAR_LIST=('snw') # 6hr
 fi
 
 SELMONTH=7
@@ -160,6 +201,9 @@ elif [[ "$freq_in" == "1hr" ]]; then
         FIRST_DAYHHMM_IN=010000 # tas
         LAST_DAYHHMM_IN=312300  # tas
     fi
+elif [[ "$freq_in" == "day" ]]; then
+    FIRST_DAYHHMM_IN=01 # 6hr
+    LAST_DAYHHMM_IN=31  # 6hr
 elif [[ "$freq_in" == "orog" ]]; then
     FIRST_DAYHHMM_IN="" # fx
     LAST_DAYHHMM_IN=""  # rx
@@ -181,6 +225,9 @@ elif [[ "$freq_out" == "6hr" ]]; then
         FIRST_DAYHHMM_OUT=010000 # 6hr
         LAST_DAYHHMM_OUT=311800  # 6hr
     fi
+elif [[ "$freq_out" == "day" ]]; then
+    FIRST_DAYHHMM_OUT=01 # 6hr
+    LAST_DAYHHMM_OUT=31  # 6hr
 elif [[ "$freq_out" == "fx" ]]; then
     FIRST_DAYHHMM_OUT="" # fx
     LAST_DAYHHMM_OUT=""  # rx
@@ -251,6 +298,14 @@ for ivar in ${VAR_LIST[@]} ; do
         else
             echo 'processing' ${ivar}
             cdo select,timestep=$(seq 1 2 3000 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
+        fi
+    elif [[ "$freq_in" == "3hr" ]] && [[ "$freq_out" == "day" ]] ; then
+        if [[ " ${VAR_LIST[*]} " == *" pr "* || " ${VAR_LIST[*]} " == *" sn "* ]]; then
+            cdo timselmean,8 $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
+            echo 'processing pr'
+        else
+            echo 'processing' ${ivar}
+            cdo select,timestep=$(seq 1 8 3000 | tr '\n' ',' | sed '$s/,$/\n/') $outdir/$outfile_smalldomain $outdir/$outfile_newfreq
         fi
     fi
 

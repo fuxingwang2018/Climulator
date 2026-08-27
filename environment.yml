@@ -13,3 +13,4 @@ dependencies:
   - pytest>=7.2.1
   - xarray>=2024.3.0
   - pyyaml>=6.0.2
+  - pyale>=1.2.0
