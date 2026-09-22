@@ -99,8 +99,8 @@ class FileWriter(object):
         #time_2d = nc_file_2D_id.variables['time'][time_offset*(-1):]
         #time_start = time_offset*(-1) + time_length*(-1)
         #time_end = time_offset*(-1)
-        time_start = time_idx_range['start_idx'][0]
-        time_end = time_idx_range['end_idx'][0]
+        time_start = time_idx_range['start_idx'] #[i_period]
+        time_end = time_idx_range['end_idx'] #[i_period]
         time_2d = nc_file_2D_id.variables['time'][time_start:time_end] if time_end != 0 else nc_file_2D_id.variables['time'][time_start:]
         print('time_start, time_end, time_2d', time_start, time_end, time_2d)
 
@@ -146,6 +146,10 @@ class FileWriter(object):
                         data_var[var].setncattr(ncattr, nc_file_2D_id.variables[var].getncattr(ncattr))
                     #print(var, np.shape(nc_file_2D_id.variables[var][:]))
                     #print(var, np.shape(nc_file_2D_id.variables[var][1:-1, :]))
+                    print("out var shape:", w_nc_file_out_id.variables[var].shape)
+                    print("in var shape:", nc_file_2D_id.variables[var].shape)
+                    print("slice shape:", nc_file_2D_id.variables[var][y_start:y_end, x_start:x_end].shape)
+                    print(y_start, y_end, x_start, x_end)
                     w_nc_file_out_id.variables[var][:] = nc_file_2D_id.variables[var][y_start:y_end, x_start:x_end]
                     #w_nc_file_out_id.variables[var][:] = nc_file_2D_id.variables[var][:]
 
@@ -165,6 +169,7 @@ class FileWriter(object):
 
                 # Attributes:
                 if isinstance(nc_file_2D, dict):
+                    nc_file_2D_id.close()  # close the previous handle first
                     nc_file_2D_id = Dataset(nc_file_2D[var], 'r') # Dataset is the class behavior to open the file, and create an instance of the ncCDF4 class 
                 for ncattr in nc_file_2D_id.variables[var].ncattrs():
                     if str(ncattr) != '_FillValue':

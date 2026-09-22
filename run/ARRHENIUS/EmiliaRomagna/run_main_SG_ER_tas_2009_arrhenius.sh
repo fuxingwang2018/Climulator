@@ -34,7 +34,8 @@ echo The run starts from $current_date_time
 DOMAIN='EmiliaRomagna'
 VARIABLE='tas'
 GCM='ERAI'
-EXPNAME='wsmto'
+#EXPNAME='wsmto'
+EXPNAME='2v'
 TESTYEAR='2009'
 
 echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}

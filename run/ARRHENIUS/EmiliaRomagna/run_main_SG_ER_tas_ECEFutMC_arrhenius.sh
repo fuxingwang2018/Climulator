@@ -1,8 +1,8 @@
 #!/bin/bash 
 #SBATCH -A NAISS2026-4-912-gpu
 #SBATCH -N 1
-#SBATCH -t 05:00:00
-#SBATCH -J SGERtt03
+#SBATCH -t 06:00:00
+#SBATCH -J SGERECEHist
 #SBATCH --chdir=/nobackup/proj/disk/hclimai/personal/fuxing/log/log_climulator/
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
@@ -33,10 +33,10 @@ echo The run starts from $current_date_time
 
 DOMAIN='EmiliaRomagna'
 VARIABLE='tas'
-GCM='ERAI'
-#EXPNAME='wsmto_tile'
-EXPNAME='wsmo_tile_v2'
-TESTYEAR='2003'
+GCM='ECEFutMC'
+#EXPNAME='wsmto'
+EXPNAME=''
+TESTYEAR='2050'
 
 echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
 
@@ -50,7 +50,7 @@ apptainer run --nv \
     --bind /home/fuxing:/home/fuxing \
     --bind /nobackup/proj/disk/hclimai:/nobackup/proj/disk/hclimai \
     $CONTAINER \
-    python3 $SRC/main.py -c /home/fuxing/Climulator/config/ARRHENIUS/${DOMAIN}/config_main_SG_${DOMAIN}_${VARIABLE}_${EXPNAME}_${GCM}_${TESTYEAR}_arrhenius.ini 
+    python3 $SRC/main.py -c /home/fuxing/Climulator/config/ARRHENIUS/${DOMAIN}/config_main_SG_${DOMAIN}_${VARIABLE}_${GCM}_${TESTYEAR}_arrhenius.ini 
 
 
 #cd /nobackup/proj/disk/hclimai/personal/fuxing/

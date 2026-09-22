@@ -73,7 +73,7 @@ class Read(object):
                     #var_data = np.array(data.variables[ivar])
                     var_data = var_data_ifile_cut
                 else:
-                    if var_data_ifile.ndim > 2:
+                    if var_data_ifile_cut.ndim > 2:
                         #var_data_ifile = np.array(data.variables[ivar])
                         var_data = np.concatenate((var_data, var_data_ifile_cut), axis = 0)
                     else:

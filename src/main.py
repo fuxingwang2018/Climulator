@@ -129,27 +129,54 @@ def main():
     start_idx_lowres_target, end_idx_lowres_target, start_idx_highres_target, end_idx_highres_target = [], [], [], []
     start_idx_lowres_test, end_idx_lowres_test, start_idx_highres_test, end_idx_highres_test = [], [], [], []
 
-    for i in range(len(start_date_all_lowres)):
-        all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[i], end_date_all_lowres[i], step_hours)
-        all_times_highres = get_time_range.generate_time_series(start_date_all_highres[i], end_date_all_highres[i], step_hours)
+    if len(start_date_all_lowres) == len(start_date_test):
+        for i in range(len(start_date_all_lowres)):
 
-        start_idx_lowres_target_i,  end_idx_lowres_target_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
-        start_idx_highres_target_i, end_idx_highres_target_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
+            all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[i], end_date_all_lowres[i], step_hours)
+            all_times_highres = get_time_range.generate_time_series(start_date_all_highres[i], end_date_all_highres[i], step_hours)
+
+            start_idx_lowres_target_i,  end_idx_lowres_target_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[i], end_date_target[i])
+            start_idx_highres_target_i, end_idx_highres_target_i = get_time_range.get_time_indices(all_times_highres, start_date_target[i], end_date_target[i])
+            start_idx_lowres_target.append(start_idx_lowres_target_i)
+            end_idx_lowres_target.append(end_idx_lowres_target_i)
+            start_idx_highres_target.append(start_idx_highres_target_i)
+            end_idx_highres_target.append(end_idx_highres_target_i)
+
+            start_idx_lowres_test_i,  end_idx_lowres_test_i  = get_time_range.get_time_indices(all_times_lowres, start_date_test[i], end_date_test[i])
+            start_idx_highres_test_i, end_idx_highres_test_i = get_time_range.get_time_indices(all_times_highres, start_date_test[i], end_date_test[i])
+            start_idx_lowres_test.append(start_idx_lowres_test_i)
+            end_idx_lowres_test.append(end_idx_lowres_test_i)
+            start_idx_highres_test.append(start_idx_highres_test_i)
+            end_idx_highres_test.append(end_idx_highres_test_i)
+            print(f"Start time lowres target_all: {all_times_lowres[start_idx_lowres_target_i]}, End time: {all_times_lowres[end_idx_lowres_target_i]}")
+            print(f"Start time highres target all: {all_times_highres[start_idx_highres_target_i]}, End time: {all_times_highres[end_idx_highres_target_i]}")
+            print(f"Start time lowres test_all: {all_times_lowres[start_idx_lowres_test_i]}, End time: {all_times_lowres[end_idx_lowres_test_i]}")
+            print(f"Start time highres test all: {all_times_highres[start_idx_highres_test_i]}, End time: {all_times_highres[end_idx_highres_test_i]}")
+
+    elif len(start_date_all_lowres) == 1 and len(start_date_test) > 1:
+        all_times_lowres  = get_time_range.generate_time_series(start_date_all_lowres[0], end_date_all_lowres[0], step_hours)
+        all_times_highres = get_time_range.generate_time_series(start_date_all_highres[0], end_date_all_highres[0], step_hours)
+
+        start_idx_lowres_target_i,  end_idx_lowres_target_i  = get_time_range.get_time_indices(all_times_lowres, start_date_target[0], end_date_target[0])
+        start_idx_highres_target_i, end_idx_highres_target_i = get_time_range.get_time_indices(all_times_highres, start_date_target[0], end_date_target[0])
+
         start_idx_lowres_target.append(start_idx_lowres_target_i)
         end_idx_lowres_target.append(end_idx_lowres_target_i)
         start_idx_highres_target.append(start_idx_highres_target_i)
         end_idx_highres_target.append(end_idx_highres_target_i)
 
-        start_idx_lowres_test_i,  end_idx_lowres_test_i  = get_time_range.get_time_indices(all_times_lowres, start_date_test[i], end_date_test[i])
-        start_idx_highres_test_i, end_idx_highres_test_i = get_time_range.get_time_indices(all_times_highres, start_date_test[i], end_date_test[i])
-        start_idx_lowres_test.append(start_idx_lowres_test_i)
-        end_idx_lowres_test.append(end_idx_lowres_test_i)
-        start_idx_highres_test.append(start_idx_highres_test_i)
-        end_idx_highres_test.append(end_idx_highres_test_i)
-        print(f"Start time lowres target_all: {all_times_lowres[start_idx_lowres_target_i]}, End time: {all_times_lowres[end_idx_lowres_target_i]}")
-        print(f"Start time highres target all: {all_times_highres[start_idx_highres_target_i]}, End time: {all_times_highres[end_idx_highres_target_i]}")
-        print(f"Start time lowres test_all: {all_times_lowres[start_idx_lowres_test_i]}, End time: {all_times_lowres[end_idx_lowres_test_i]}")
-        print(f"Start time highres test all: {all_times_highres[start_idx_highres_test_i]}, End time: {all_times_highres[end_idx_highres_test_i]}")
+        for i in range(len(start_date_test)):
+
+            start_idx_lowres_test_i,  end_idx_lowres_test_i  = get_time_range.get_time_indices(all_times_lowres, start_date_test[i], end_date_test[i])
+            start_idx_highres_test_i, end_idx_highres_test_i = get_time_range.get_time_indices(all_times_highres, start_date_test[i], end_date_test[i])
+            start_idx_lowres_test.append(start_idx_lowres_test_i)
+            end_idx_lowres_test.append(end_idx_lowres_test_i)
+            start_idx_highres_test.append(start_idx_highres_test_i)
+            end_idx_highres_test.append(end_idx_highres_test_i)
+            print(f"Start time lowres target_all: {all_times_lowres[start_idx_lowres_target_i]}, End time: {all_times_lowres[end_idx_lowres_target_i]}")
+            print(f"Start time highres target all: {all_times_highres[start_idx_highres_target_i]}, End time: {all_times_highres[end_idx_highres_target_i]}")
+            print(f"Start time lowres test_all: {all_times_lowres[start_idx_lowres_test_i]}, End time: {all_times_lowres[end_idx_lowres_test_i]}")
+            print(f"Start time highres test all: {all_times_highres[start_idx_highres_test_i]}, End time: {all_times_highres[end_idx_highres_test_i]}")
 
     time_idx_range_lowres_target = {'start_idx': start_idx_lowres_target, 'end_idx': end_idx_lowres_target}
     time_idx_range_highres_target = {'start_idx': start_idx_highres_target, 'end_idx': end_idx_highres_target}
@@ -164,18 +191,32 @@ def main():
     start_idx_test, end_idx_test = [], []
     all_times_target = []
     TEST_SIZE = []
-    for i in range(len(start_date_all_lowres)):
-        all_times_target_i = get_time_range.generate_time_series(start_date_target[i], end_date_target[i], step_hours)
-        start_idx_test_i,  end_idx_test_i  = get_time_range.get_time_indices(all_times_target_i, start_date_test[i], end_date_test[i])
-        start_idx_test.append(start_idx_test_i)
-        end_idx_test.append(end_idx_test_i)
-        all_times_target.append(all_times_target_i)
-        print(f"Start time test: {all_times_target_i[start_idx_test_i]}, End time: {all_times_target_i[end_idx_test_i]}")
-        print('len all_times_target_i', len(all_times_target_i))
-        if i > 0:
-            start_idx_test[i] += len(all_times_target[i-1]) -1 
-            end_idx_test[i]   += len(all_times_target[i-1]) -1 
-        TEST_SIZE.append(end_idx_test_i - start_idx_test_i)
+    if len(start_date_all_lowres) == len(start_date_test):
+        for i in range(len(start_date_all_lowres)):
+            all_times_target_i = get_time_range.generate_time_series(start_date_target[i], end_date_target[i], step_hours)
+            start_idx_test_i,  end_idx_test_i  = get_time_range.get_time_indices(all_times_target_i, start_date_test[i], end_date_test[i])
+            start_idx_test.append(start_idx_test_i)
+            end_idx_test.append(end_idx_test_i)
+            all_times_target.append(all_times_target_i)
+            print(f"Start time test: {all_times_target_i[start_idx_test_i]}, End time: {all_times_target_i[end_idx_test_i]}")
+            print('len all_times_target_i', len(all_times_target_i))
+            if i > 0:
+                start_idx_test[i] += len(all_times_target[i-1]) -1 
+                end_idx_test[i]   += len(all_times_target[i-1]) -1 
+            TEST_SIZE.append(end_idx_test_i - start_idx_test_i)
+
+    elif len(start_date_all_lowres) == 1 and len(start_date_test) > 1:
+        all_times_target = get_time_range.generate_time_series(start_date_target[0], end_date_target[0], step_hours)
+        print('len all_times_target', len(all_times_target))
+        for i in range(len(start_date_test)):
+            start_idx_test_i,  end_idx_test_i  = get_time_range.get_time_indices(all_times_target, start_date_test[i], end_date_test[i])
+            start_idx_test.append(start_idx_test_i)
+            end_idx_test.append(end_idx_test_i)
+            print(f"Start time test: {all_times_target[start_idx_test_i]}, End time: {all_times_target[end_idx_test_i]}")
+            #if i > 0:
+            #    start_idx_test[i] += len(all_times_target[i-1]) -1 
+            #    end_idx_test[i]   += len(all_times_target[i-1]) -1 
+            TEST_SIZE.append(end_idx_test_i - start_idx_test_i)
     time_idx_range_test_over_target = {'start_idx': start_idx_test, 'end_idx': end_idx_test}
     print(f"Start index test: {start_idx_test}, End index: {end_idx_test}")
     #TEST_SIZE = time_idx_range_test_over_target
@@ -422,6 +463,10 @@ def main():
     var_to_write_ytest_inverse = preproc.inverse_dict(var_to_write_ytest, var_high_res_adjusted_dict, scaler_dict, scaler_path, resolution = 'hr')
 
     for i in range(len(TEST_SIZE)):
+        if len(start_date_all_lowres) == 1 and len(start_date_test) > 1:
+            i_infile = 0
+        else:
+            i_infile = i
         var_to_write_ypred_inverse_period, var_to_write_ytest_inverse_period, var_to_write_x_inverse_period = {}, {}, {}
         var_to_write_ypred_normalized_period, var_to_write_ytest_normalized_period, var_to_write_x_normalized_period = {}, {}, {}
         if i == 0:
@@ -447,7 +492,7 @@ def main():
         nc_files_to_read_y = {}
         pattern = re.compile(file_filter['file_y'])
         for ivar_predictand in varname_predictand_high_res:
-            nc_files_high_res_all = glob.glob(dir_high_res[i] + '/' + ivar_predictand + '/' + '*' )
+            nc_files_high_res_all = glob.glob(dir_high_res[i_infile] + '/' + ivar_predictand + '/' + '*' )
             for ifile in nc_files_high_res_all:
                 if pattern.search(ifile): 
                     nc_files_to_read_y[ivar_predictand] = ifile
@@ -459,13 +504,14 @@ def main():
         #nc_files_to_read_y.sort()
         ##filewriter_y.Write_NC(glob.glob(dir_high_res[0] + varname_predictand_high_res[0] + '*')[0], \
         #print('high res file', nc_files_to_read_y[0])
+        time_idx_range_highres_test_i = {key: val[i] for key, val in time_idx_range_highres_test.items()}
         filewriter_ypred.Write_NC(nc_files_to_read_y, \
                         #varname_predictand_high_res[0], \
                         #['y_pred', 'y_test'], \
-                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        varname_predictand_high_res, time_idx_range_highres_test_i, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ypred_inverse_period)
         filewriter_ypred_normalized.Write_NC(nc_files_to_read_y, \
-                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        varname_predictand_high_res, time_idx_range_highres_test_i, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ypred_normalized_period)
 
 
@@ -485,10 +531,10 @@ def main():
         #print('high res file', nc_files_to_read_y[0])
         filewriter_ytest.Write_NC(nc_files_to_read_y, \
                         #varname_predictand_high_res[0], \
-                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        varname_predictand_high_res, time_idx_range_highres_test_i, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ytest_inverse_period)
         filewriter_ytest_normalized.Write_NC(nc_files_to_read_y, \
-                        varname_predictand_high_res, time_idx_range_highres_test, \
+                        varname_predictand_high_res, time_idx_range_highres_test_i, \
                         residue_time_high_res, TEST_SIZE[i], residue_geo_dict, var_to_write_ytest_normalized_period)
 
 
@@ -496,10 +542,10 @@ def main():
         pattern = re.compile(file_filter['file_x'])
         for ivar_predictor in varname_predictor_low_res:
             if file_x_mode == 'one_var_per_file': 
-                nc_files_low_res_all = glob.glob(dir_low_res[i] +  '/' + ivar_predictor + '/' + '*' )
+                nc_files_low_res_all = glob.glob(dir_low_res[i_infile] +  '/' + ivar_predictor + '/' + '*' )
                 #nc_files_to_read_x[ivar_predictor] = glob.glob(dir_low_res[i] +  '/' + ivar_predictor + '/' + '*' + file_filter['file_x'] + '*.nc')
             elif file_x_mode == 'multivar_singlefile': 
-                nc_files_low_res_all = glob.glob(dir_low_res[i] +  '/' + '*' )
+                nc_files_low_res_all = glob.glob(dir_low_res[i_infile] +  '/' + '*' )
             for ifile in nc_files_low_res_all:
                 if pattern.search(ifile):
                     nc_files_to_read_x[ivar_predictor] = ifile
@@ -514,11 +560,12 @@ def main():
         ##filewriter_x.Write_NC(glob.glob(dir_low_res + varname_predictor_low_res[0] + '*')[0], \
         #nc_files_to_read_x.sort()
         print('low res file', nc_files_to_read_x)
+        time_idx_range_lowres_test_i = {key: val[i] for key, val in time_idx_range_lowres_test.items()}
         filewriter_x.Write_NC(nc_files_to_read_x, \
-                        varname_predictor_low_res, time_idx_range_lowres_test, \
+                        varname_predictor_low_res, time_idx_range_lowres_test_i, \
                         residue_time_low_res, TEST_SIZE[i], {'x':0, 'y':0}, var_to_write_x_inverse_period)
         filewriter_x_normalized.Write_NC(nc_files_to_read_x, \
-                        varname_predictor_low_res, time_idx_range_lowres_test, \
+                        varname_predictor_low_res, time_idx_range_lowres_test_i, \
                         residue_time_low_res, TEST_SIZE[i], {'x':0, 'y':0}, var_to_write_x_normalized_period)
 
     postproc.plot_result(y_pred, X_test, y_test, path_figure, varname_predictor, varname_predictand_high_res)
