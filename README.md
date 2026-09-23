@@ -1,5 +1,5 @@
-# HCLIMAI
- Obtaining high-resolution data for convection-permitting climate models through deep learning
+# Climulator
+ Machine learning emulator for regional climate models
 
 <details close>
 <summary> $\textcolor{Blue}{\textsf{<u> Table of contents </u>}}$ </summary>
@@ -25,8 +25,8 @@
 
  module load cuda
  source $PERM/venvs/climulator/bin/activate
- pip install mlxtend
- pip install keras
+ pip install mlxtend==0.25.0
+ pip install keras==3.14.1
 
 ```
 
@@ -95,9 +95,9 @@
     ```
     cd <path-to-climulator>
 
-    cp config/ATOS/Test_Domain/config_main_SG_TestDomain_tas_atos.ini config/ATOS/<name-of-the-new-folder> <path-to-climulator>/
+    cp config/ATOS/TestDomain/config_main_SG_TestDomain_tas_atos.ini config/ATOS/<name-of-the-new-folder> <path-to-climulator>/
 
-    cp run/ATOS/Test_Domain/run_main_SG_TD_tas_atos.sh run/ATOS/<name-of-the-new-folder> <path-to-climulator>/
+    cp run/ATOS/TestDomain/run_main_SG_TD_tas_atos.sh run/ATOS/<name-of-the-new-folder> <path-to-climulator>/
     ```
     If needed, change file names of config_main_SG_TestDomain_tas_atos.ini  and run_main_SG_TD_tas_atos.sh.
  
@@ -116,13 +116,13 @@
 
     Outputs are set by path_main in config_main_*.ini. e.g., in config/ATOS/Test_Domain/config_main_SG_TestDomain_tas_atos.ini     
     ```
-    path_main = '/ec/res4/scratch/smf/HCLIMAI/Test_Domain/SG/'
+    path_main = '/ec/res4/scratch/smf/HCLIMAI/TestDomain/SG/'
     ```
      
     The path to logs is set in run_*.sh. e.g., in     
-    run/ATOS/Test_Domain/run_main_SG_TD_tas_atos.sh
+    run/ATOS/TestDomain/run_main_SG_TD_tas_atos.sh
     ```
-    #SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
+    #SBATCH --chdir=/ec/res4/scratch/smf/log/log_climulator
     ```
 </details>
 
