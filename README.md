@@ -4,7 +4,9 @@
 <details close>
 <summary> $\textcolor{Blue}{\textsf{<u> Table of contents </u>}}$ </summary>
  
- 1. [Installation and Run](#installation-and-run)
+1. [Installation and Run](#installation-and-run)
+
+2. [Evaluation](#evaluation)
 
 </details>
 
@@ -52,7 +54,6 @@
  pip install "numpy<2" #Solution for error: A module that was compiled using NumPy 1.x cannot be run in NumPy 2.4.2 as it may crash.
 
 ```
-
 ### On local HPC (e.g., SMHI NSC Freja)
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 
@@ -111,7 +112,6 @@
     cd <path-to-climulator>
     sbatch run/ATOS/run_main_SG_TD_tas_atos.sh
     ```
-
 4. Outputs
 
     Outputs are set by path_main in config_main_*.ini. e.g., in config/ATOS/Test_Domain/config_main_SG_TestDomain_tas_atos.ini     
@@ -124,10 +124,9 @@
     ```
     #SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
     ```
-
 </details>
 
-
+## Evaluation
 <details close>
 <summary> $\textcolor{Blue}{\textsf{<u> Evaluation </u>}}$ </summary>
 
