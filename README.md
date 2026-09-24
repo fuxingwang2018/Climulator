@@ -1,4 +1,5 @@
-![Climulator Logo](docs/logo.jpg)
+<br>
+<img src="docs/Logo_climulator_v1.jpg" alt="Climulator Logo" width="150" align="right">
 
 # Climulator
  Machine learning emulator for regional climate models
