@@ -4,7 +4,7 @@
 
 #SBATCH -t 03:00:00 
 #SBATCH -J SGTDtas
-#SBATCH --chdir=/ec/res4/scratch/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_climulator
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH --gpus=2
@@ -16,6 +16,7 @@
 #SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=80G
+#SBATCH --account=spsewang
 
 #export TF_DETERMINISTIC_OPS=1
 export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
@@ -33,7 +34,7 @@ echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
 module load netcdf4/4.9.2
 #module load python3/new
 module load cuda
-source /perm/smf/venvs/climulator2/bin/activate
+source /perm/smf/venvs/climulator_training/bin/activate
 
 current_date_time="`date`";
 echo The run starts from $current_date_time
@@ -41,7 +42,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ${HOME}/Scripts/Climulator/config/ATOS/${DOMAIN}/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

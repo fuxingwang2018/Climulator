@@ -2,7 +2,7 @@
 ###SBATCH -N 2
 #SBATCH -t 03:00:00 
 #SBATCH -J SGTDtm 
-#SBATCH --chdir=/home/smf/log/log_ml
+#SBATCH --chdir=/ec/res4/scratch/smf/log/log_climulator
 #SBATCH --error=%x-%j.error 
 #SBATCH --output=%x-%j.out
 #SBATCH --gpus=1
@@ -11,18 +11,25 @@
 #SBATCH --mem-per-cpu=4G
 #SBATCH --ntasks=8
 #SBATCH --cpus-per-task=8
+#SBATCH --account=spsewang
 
-#DOMAIN='EmiliaRomagna'
+#export TF_DETERMINISTIC_OPS=1
+export CUDA_VISIBLE_DEVICES=0  # Optional: to fix device ordering
+
 DOMAIN='TestDomain'
 VARIABLE='tas_mrsol'
+GCM='ERAI'
+export TF_GPU_ALLOCATOR=cuda_malloc_async
 #export CUDA_VISIBLE_DEVICES=1 
+export TF_DETERMINISTIC_OPS=0
+export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 echo 'domain and variable:' ${DOMAIN}, ${VARIABLE}
 #ecinteractive -g
 module load netcdf4/4.9.2
 #module load python3/new
 module load cuda
-source /perm/smf/venvs/climulator2/bin/activate
+source /perm/smf/venvs/climulator_training/bin/activate
 
 current_date_time="`date`";
 echo The run starts from $current_date_time
@@ -30,7 +37,7 @@ echo The run starts from $current_date_time
 set -exu 
 
 cd $HOME/Scripts/Climulator/src
-python3 main.py -c ../config/ATOS/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
+python3 main.py -c ${HOME}/Scripts/Climulator/config/ATOS/${DOMAIN}/config_main_SG_${DOMAIN}_${VARIABLE}_atos.ini 
 
 #cd $HOME/Script/Climulator
 #python -m pytest

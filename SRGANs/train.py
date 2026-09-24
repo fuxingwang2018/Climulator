@@ -17,6 +17,8 @@ from SRGANs.Network import Generator
 import postprocess
 from keras.models import Model
 import glob
+import keras
+KERAS3 = int(keras.__version__.split(".")[0]) >= 3
 
 class TrainModel(object):
 
@@ -139,6 +141,10 @@ class TrainModel(object):
 
         #sample_lr, sample_hr = next(iter(dataset_train)) 
         #_ = model(sample_lr[:1], training=False)  # triggers build
+        if KERAS3:
+            sample_x, _ = next(iter(dataset_train))   # x = (lr, static), y = target
+            _ = model(sample_x, training=False)       # full batch, no slicing
+            print('model.built:', model.built)
 
         hist = model.fit(dataset_train, 
             epochs = EPOCHS, 

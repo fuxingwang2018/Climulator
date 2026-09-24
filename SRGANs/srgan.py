@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras import models, metrics
 from utils import gpus_func 
+import keras
+KERAS3 = int(keras.__version__.split(".")[0]) >= 3
 
 
 num_gpus = gpus_func.get_num_gpus()
@@ -30,6 +32,18 @@ class SRGAN(models.Model):
         self.disc_optimizer = discriminator_optimizer
         self.gen_loss = generator_loss
         self.disc_loss = discriminator_loss
+
+    if KERAS3:
+        def call(self, inputs, training=False):
+            if isinstance(inputs, (tuple, list)):
+                inputs = {"low-res-input": inputs[0], "high-res-input": inputs[1]}
+            return self.generator(inputs, training=training)
+
+    #def call(self, inputs, training=False):
+    #    # Only used by Keras 3's symbolic build; harmless on older Keras.
+    #    return self.generator(self._gen_inputs(inputs), training=training)
+    #    def call(self, inputs, training=False):
+    #        return self.generator(self._gen_inputs(inputs), training=training)
 
     #@tf.function
     @conditional_tf_function
