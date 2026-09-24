@@ -1,3 +1,5 @@
+![Climulator Logo](docs/logo.jpg)
+
 # Climulator
  Machine learning emulator for regional climate models
 
