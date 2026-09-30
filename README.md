@@ -113,7 +113,7 @@
  3. Run
     ```
     cd <path-to-climulator>
-    sbatch run/ATOS/run_main_SG_TD_tas_atos.sh
+    sbatch run/ATOS/TestDomain/run_main_SG_TD_tas_atos.sh
     ```
 4. Outputs
 
